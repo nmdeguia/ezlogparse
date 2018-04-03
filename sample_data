@@ -1,0 +1,9 @@
+86.223.132.25 - REYNA.EMARD [19/Jan/2016:01:02:08 +0100] "GET http://eds.b.ebscohost.com:80/truesightedgemarker/!crd_prm!.!cm?crd_ver=0.9.5&crd_rnd=899921&crd_cnt=0.01&crd_tpb=1453162216594&crd_olt=1375 HTTP/1.1" 200 410
+86.223.132.25 - REYNA.EMARD [19/Jan/2016:01:02:08 +0100] "GET http://sciverse-shindig.elsevier.com:80/gadgets/js/shindig-container:pubsub-2.js?c=1 HTTP/1.1" 200 87533
+86.223.132.25 - REYNA.EMARD [19/Jan/2016:01:02:09 +0100] "GET http://ars.els-cdn.com:80/content/thumbimage/1-s2.0-S0169409X15000976-fx1.sml HTTP/1.1" 200 5138
+86.223.132.25 - REYNA.EMARD [19/Jan/2016:01:02:09 +0100] "GET http://ars.els-cdn.com:80/content/thumbimage/1-s2.0-S0169409X15000976-gr1.sml HTTP/1.1" 200 10831
+86.223.132.25 - REYNA.EMARD [19/Jan/2016:01:02:09 +0100] "GET http://ars.els-cdn.com:80/content/thumbimage/1-s2.0-S0169409X15000976-gr2.sml HTTP/1.1" 200 12256
+86.223.132.25 - REYNA.EMARD [19/Jan/2016:01:02:09 +0100] "GET http://ars.els-cdn.com:80/content/thumbimage/1-s2.0-S0169409X15000976-gr3.sml HTTP/1.1" 200 22028
+86.223.132.25 - REYNA.EMARD [19/Jan/2016:01:02:11 +0100] "GET http://ac.els-cdn.com:80/S0169409X15000976/1-s2.0-S0169409X15000976-main.pdf?_tid=08891edc-be41-11e5-b066-00000aacb35e&acdnat=1453162403_7cf61d152c9c91a8dd502de680401e92 HTTP/1.1" 200 1087311
+86.223.132.25 - REYNA.EMARD [19/Jan/2016:01:02:11 +0100] "GET http://ac.els-cdn.com:80/S0169409X15000976/1-s2.0-S0169409X15000976-main.pdf?_tid=08891edc-be41-11e5-b066-00000aacb35e&acdnat=1453162403_7cf61d152c9c91a8dd502de680401e92 HTTP/1.1" 200 1087311
+86.223.132.25 - REYNA.EMARD [19/Jan/2016:01:02:11 +0100] "GET http://ac.els-cdn.com:80/S0169409X15000976/1-s2.0-S0169409X15000976-main.pdf?_tid=08891edc-be41-11e5-b066-00000aacb35e&acdnat=1453162403_7cf61d152c9c91a8dd502de680401e92 HTTP/1.1" 200 1087311
