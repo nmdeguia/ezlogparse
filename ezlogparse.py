@@ -7,8 +7,10 @@ Created on Tue Apr  3 16:18:35 2018
     Norman Roy de Guia
     Al Tristan Bandiola
 """
-from collections import Counter
 import sys;
+import csv;
+from collections import Counter;
+from itertools import groupby;
 
 ipaddr = [];
 name = [];
@@ -51,7 +53,7 @@ def main(filename, csvfile):
     parse_date();
 
     # generate statistical report on data
-    get_statistics(parsed_data);
+    get_statistics(csvfile);
 
 def parse_data(data, datalen):
     # find lookup string and isolate
@@ -83,22 +85,21 @@ def parse_data(data, datalen):
 
     return final_arr;
 
-def get_statistics(data):
-    datalen = len(data);
-
+def get_statistics(csvfile):
     print("----------------------------------------");
     print("Statistical Report for acquired dataset:");
-
-    # count number of unique items in dataset
-    unique_items = Counter(data);
-    n_unq_items = len(unique_items);
-    print("Number of unique items: %d" % n_unq_items);
     
+    temp = open(csvfile, 'r');
+    reader = csv.reader(temp);
+    data = list(reader);
+
+    print(len(data))
+
     get_items_per_timewindow(data);
 
 def get_items_per_timewindow(data):
-    print(timewindow);
-    print(date[0][2]);
+    print("Time Slice of %d minutes." % (timewindow*24*60));
+    #print(date[0][2]);
 
 def parse_date():
     temp = [];
