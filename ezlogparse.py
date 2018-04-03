@@ -3,7 +3,9 @@
 """
 Created on Tue Apr  3 16:18:35 2018
 
-@author: norman
+@author:
+Norman Roy de Guia
+Al Tristan Bandiola
 """
 import sys;
 
