@@ -10,10 +10,20 @@ Created on Tue Apr  3 16:18:35 2018
 from collections import Counter
 import sys;
 
+ipaddr = [];
+name = [];
+date = [];
+taccess = [];
+tzone = [];
+request = [];
+
+# in minutes
+timewindow = 1440/24/60;
+
 def main(filename, csvfile):
     #filename = "sample_data";
     #csvfile = "parsed_data.csv";
-    print("Parsing %s." % filename);
+    print("Parsing %s..." % filename);
     
     # Open data file and store in data vector.
     data = open(filename, 'r');
@@ -37,6 +47,9 @@ def main(filename, csvfile):
     csvdump.write(csvdumpstr);
     print("Parsing complete, output dump: %s." % csvfile);
 
+    # parse date into more meaningful data
+    parse_date();
+
     # generate statistical report on data
     get_statistics(parsed_data);
 
@@ -48,11 +61,6 @@ def parse_data(data, datalen):
         if lookup in data[x][6]:
             parse_arr.append(data[x]);
             
-    ipaddr = [];
-    name = [];
-    date = [];
-    tzone = [];
-    request = [];
     parse_arr_count = len(parse_arr);
     print("Total valuable lines: %d" % parse_arr_count);
     
@@ -63,12 +71,12 @@ def parse_data(data, datalen):
         temp = "";
         ipaddr.append(parse_arr[x][0]);
         name.append(parse_arr[x][2]);
-        date.append(parse_arr[x][3].strip("["));
+        taccess.append(parse_arr[x][3].strip("["));
         tzone.append(parse_arr[x][4].strip("]"));
         request.append(parse_arr[x][6]);
         temp += ipaddr[x] + ", ";
         temp += name[x] + ", ";
-        temp += date[x] + ", ";
+        temp += taccess[x] + ", ";
         temp += tzone[x] + ", ";
         temp += request[x] + "\n";
         final_arr[x] = temp;
@@ -81,10 +89,24 @@ def get_statistics(data):
     print("----------------------------------------");
     print("Statistical Report for acquired dataset:");
 
-    unique_data = Counter(data);
-    n_unq_data = len(unique_data);
-    print("Number of unique items: %d" % n_unq_data);
+    # count number of unique items in dataset
+    unique_items = Counter(data);
+    n_unq_items = len(unique_items);
+    print("Number of unique items: %d" % n_unq_items);
+    
+    get_items_per_timewindow(data);
 
+def get_items_per_timewindow(data):
+    print(timewindow);
+    print(date[0][2]);
+
+def parse_date():
+    temp = [];
+    # print(isinstance(date, list));
+    for x in range(len(taccess)):
+        temp = taccess[x][:11].split('/');
+        temp += taccess[x][12:].split(':');
+        date.append(temp);
 
 if __name__ == "__main__": #main();
     main(sys.argv[1], sys.argv[2]);
