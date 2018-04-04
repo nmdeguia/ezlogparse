@@ -9,7 +9,6 @@ Created on Tue Apr  3 16:18:35 2018
 """
 import sys;
 from collections import Counter;
-from itertools import groupby;
 
 ipaddr = [];
 name = [];
@@ -17,6 +16,8 @@ date = [];
 taccess = [];
 tzone = [];
 request = [];
+
+# debug string for debugging purposes
 debug = "debug string";
 
 # in minutes
