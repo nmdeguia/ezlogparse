@@ -8,7 +8,6 @@ Created on Tue Apr  3 16:18:35 2018
     Al Tristan Bandiola
 """
 import sys;
-import csv;
 from collections import Counter;
 from itertools import groupby;
 
@@ -18,6 +17,7 @@ date = [];
 taccess = [];
 tzone = [];
 request = [];
+debug = "debug string";
 
 # in minutes
 timewindow = 1440/24/60;
@@ -53,7 +53,7 @@ def main(filename, csvfile):
     parse_date();
 
     # generate statistical report on data
-    get_statistics(csvfile);
+    get_statistics(csvdumpstr);
 
 def parse_data(data, datalen):
     # find lookup string and isolate
@@ -85,21 +85,49 @@ def parse_data(data, datalen):
 
     return final_arr;
 
-def get_statistics(csvfile):
+def get_statistics(data):
     print("----------------------------------------");
     print("Statistical Report for acquired dataset:");
-    
-    temp = open(csvfile, 'r');
-    reader = csv.reader(temp);
-    data = list(reader);
+    temp = [];
+    temp = data.split("\n")[:-1]
 
-    print(len(data))
+    print("Total valuable items: %d " % len(temp));
+    items = [0 for x in range(len(temp))];
+    for x in range(len(temp)):
+        items[x] = temp[x].split(", ");
 
-    get_items_per_timewindow(data);
+    get_items_per_timewindow(items);
 
-def get_items_per_timewindow(data):
+def get_items_per_timewindow(items):
     print("Time Slice of %d minutes." % (timewindow*24*60));
-    #print(date[0][2]);
+    print("%d items to slice." % len(items));
+    print("%d individual time records." % len(date));
+
+    # compare date here:
+    unique_time_slices = 1;
+    unique_tslice_index = [0];
+    for x in range(len(items)):
+        if x + 1 == len(items):
+            break;
+        # check if year is same as next item    
+        if date[x][2] == date[x+1][2]: 
+            if date[x][1] == date[x+1][1]:
+                # only works for 1 day time slice
+                # change code if timewindow < 1 day is needed
+                if date[x][0] == date[x+1][0]:
+                    pass;
+                else:
+                    # increment counter of unique slices
+                    unique_time_slices += 1;
+                    # get starting index of time slice window
+                    unique_tslice_index.append(x+1);
+
+    print("%d unique time slices." % unique_time_slices)
+    print("Indices of unique time slices: %s" % unique_tslice_index)
+    
+    # we now have indices of time slices
+    # locate index and iterate up to next index - 1
+    # count number of same request occurences
 
 def parse_date():
     temp = [];
