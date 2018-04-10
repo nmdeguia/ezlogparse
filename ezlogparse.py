@@ -1,7 +1,7 @@
 from sys import argv
 from collections import Counter
 
-script, in_file, out_file = argv
+script, in_file, keyword, out_file = argv
 
 def niceprint(list):
 	print '--------------------' #20
@@ -10,8 +10,8 @@ def niceprint(list):
 	print '------------------------------------------------------------' #60
 	return
 	
-class EZlog(object):
-
+class parse_ezlog(object):
+	
 	def __init__(self, in_file):
 		self.in_file = open(in_file, 'r')
 		self.raw = list(self.in_file)
@@ -31,24 +31,11 @@ class EZlog(object):
 		self.csv_string = ""
 		self.parsed = list()
 		
-		
 	def search(self, keyword):
-		#self.lookup = list()	#reinitialize lookup list
 		for i in range(len(self.str_split)):
-			if keyword in self.str_split[i][0]:			#search within ip
-				self.lookup.append(self.str_split[i])
-		for i in range(len(self.str_split)):
-			if keyword in self.str_split[i][2]:			#search within name
-				self.lookup.append(self.str_split[i])
-		for i in range(len(self.str_split)):
-			if keyword in self.str_split[i][3]:			#search within date
-				self.lookup.append(self.str_split[i])
-		for i in range(len(self.str_split)):
-			if keyword in self.str_split[i][4]:			#search within tzone
-				self.lookup.append(self.str_split[i])
-		for i in range(len(self.str_split)):
-			if keyword in self.str_split[i][6]:			#search within request
-				self.lookup.append(self.str_split[i])
+			for j in range(7):	#search all fields
+				if keyword in self.str_split[i][j]:
+					self.lookup.append(self.str_split[i])
 		return self.lookup
 		
 	def extract(self):
@@ -76,17 +63,12 @@ class EZlog(object):
 		self.out_file.write(self.parsed)
 		self.out_file.close()
 			
-	def count(self):
-		#self.ip_count = list(Counter(self.ip))
-		
+	def count(self):		
 		self.ip_count = Counter(self.ip)
 		self.name_count = Counter(self.name)
 		self.date_count = Counter(self.date)
 		self.tzone_count = Counter(self.tzone)
 		self.request_count = Counter(self.request)
-		
-		#for i in range(len(self.ip_count)):
-		#	print "{0}:{1}".format(i, self.ip_count[i])
 		
 		print "Number of Occurences: Corresponding IP Address"
 		for letter, count in self.ip_count.most_common():
@@ -97,15 +79,13 @@ class EZlog(object):
 			print "{1} : {0}".format(letter, count)
 		
 		
-a = EZlog(in_file)
-b = EZlog(in_file)
-c = EZlog(in_file)
+items = parse_ezlog(in_file)
 
 #print 'this is raw of a'
 #niceprint(a.raw)
 
 #print 'this is lookup of a'
-a.search('.pdf')
+items.search(keyword)
 #niceprint(a.search('.pdf'))
 
 #b.search('BARTON')
@@ -114,18 +94,18 @@ a.search('.pdf')
 #print 'this is str_split of a'
 #niceprint(a.str_split)
 
-a.extract()
+items.extract()
 #b.extract()
 #c.extract()
 
 #print 'this is csv_string of a'
 #print a.csv_string
 
-a.csvdump()
+items.csvdump()
 #b.csvappend()
 #c.csvappend()
 
-a.count()
+items.count()
 #print "Class Counter"
 #print Counter(a.ip)
 #print "List Counter"
@@ -134,7 +114,7 @@ a.count()
 #print a.ip_count
 #print type(a.ip_count)
 
-print a.ip_count
+#print items.ip_count
 #print a.name_count
 #print a.date_count
 #print a.tzone_count
