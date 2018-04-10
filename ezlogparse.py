@@ -93,6 +93,7 @@ class parse_ezlog(object):
 		print("Number of off campus accesses: %i" % off_campus_count)
 
 items = parse_ezlog(in_file)
+filtered_items = parse_ezlog(out_file)
 
 #print 'this is raw of a'
 #niceprint(a.raw)
@@ -118,7 +119,7 @@ items.csvdump()
 #c.csvappend()
 
 items.count_occurences()
-items.count_oncampus_occurences()
+filtered_items.count_oncampus_occurences()
 #print "Class Counter"
 #print Counter(a.ip)
 #print "List Counter"
