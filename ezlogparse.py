@@ -3,15 +3,8 @@ from collections import Counter
 
 script, in_file, keyword, out_file = argv
 
-on_campus_ipaddr = '10.'
+on_campus_ipaddr = '10.?' # ip_address of campus networks
 
-def niceprint(list):
-	print '--------------------' #20
-	for i in list:
-		print i
-	print '------------------------------------------------------------' #60
-	return
-	
 class parse_ezlog(object):
 	
 	def __init__(self, in_file):
@@ -84,55 +77,21 @@ class parse_ezlog(object):
 	def count_oncampus_occurences(self):
 		on_campus_count = 0
 		off_campus_count = 0   		
-		for i in range(len(self.str_split)):
-			if on_campus_ipaddr in self.str_split[i][0]:
+		for i in range(len(self.lookup)):
+			if on_campus_ipaddr in self.lookup[i][0]:
 				on_campus_count += 1
 			else:
 				off_campus_count += 1
-		print("Number of on campus accesses: %i" % on_campus_count)
-		print("Number of off campus accesses: %i" % off_campus_count)
+		print "Number of on campus accesses: {0}".format(on_campus_count)
+		print "Number of on campus accesses: {0}".format(off_campus_count)
+
+	def split_date_time():
+		pass
 
 items = parse_ezlog(in_file)
-filtered_items = parse_ezlog(out_file)
-
-#print 'this is raw of a'
-#niceprint(a.raw)
-
-#print 'this is lookup of a'
 items.search(keyword)
-#niceprint(a.search('.pdf'))
-#b.search('BARTON')
-#c.search('86.55.237.139')
-
-#print 'this is str_split of a'
-#niceprint(a.str_split)
-
 items.extract()
-#b.extract()
-#c.extract()
-
-#print 'this is csv_string of a'
-#print a.csv_string
-
 items.csvdump()
-#b.csvappend()
-#c.csvappend()
 
 items.count_occurences()
-filtered_items.count_oncampus_occurences()
-#print "Class Counter"
-#print Counter(a.ip)
-#print "List Counter"
-#print list(Counter(a.ip))
-#print "--------------------------------------------------"
-#print a.ip_count
-#print type(a.ip_count)
-
-#print items.ip_count
-#print a.name_count
-#print a.date_count
-#print a.tzone_count
-#print a.request_count
-
-#print "The most common IP is {}".format(a.ip_count.most_common().pop(0))
-#print type(a.ip_count.most_common().pop(0))
+items.count_oncampus_occurences()
