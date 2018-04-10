@@ -3,7 +3,7 @@ from collections import Counter
 
 script, in_file, keyword, out_file = argv
 
-on_campus_ipaddr = '10.?' # ip_address of campus networks
+on_campus_ipaddr = '10.' # ip_address of campus networks
 
 class parse_ezlog(object):
 	
@@ -80,7 +80,7 @@ class parse_ezlog(object):
 		on_campus_count = 0
 		off_campus_count = 0   		
 		for i in range(len(self.filtered_items)):
-			if on_campus_ipaddr in self.filtered_items[i][0]:
+			if self.filtered_items[i][0].startswith(on_campus_ipaddr):
 				on_campus_count += 1
 			else:
 				off_campus_count += 1
@@ -89,9 +89,6 @@ class parse_ezlog(object):
 
 	def convert_dt_to_seconds():
 		pass
-
-	def remove_possible_duplicates():
-    	pass
 
 items = parse_ezlog(in_file)
 items.search(keyword)
