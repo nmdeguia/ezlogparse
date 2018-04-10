@@ -22,7 +22,7 @@ class parse_ezlog(object):
 		self.name = list()		#2
 		self.date = list()		#3[
 		self.tzone = list()		#4]
-		self.request = list()		#6
+		self.request = list()	#6
 		self.bytes = list()		#7
 		self.csv_string = ""
 		self.parsed = list()
@@ -41,11 +41,13 @@ class parse_ezlog(object):
 			self.date.append(self.filtered_items[i][3].strip('['))
 			self.tzone.append(self.filtered_items[i][4].strip(']'))
 			self.request.append(self.filtered_items[i][6])
+			self.bytes.append(self.filtered_items[i][9])			
 			self.csv_string += self.ip[i] + ', '
 			self.csv_string += self.name[i] + ', '
 			self.csv_string += self.date[i] + ', '
 			self.csv_string += self.tzone[i] + ', '
-			self.csv_string += self.request[i] + '\n'
+			self.csv_string += self.request[i] + ', '
+			self.csv_string += self.bytes[i] + '\n'
 			self.parsed = self.csv_string
 		return self.parsed
 	
@@ -87,6 +89,9 @@ class parse_ezlog(object):
 
 	def convert_dt_to_seconds():
 		pass
+
+	def remove_possible_duplicates():
+    	pass
 
 items = parse_ezlog(in_file)
 items.search(keyword)
