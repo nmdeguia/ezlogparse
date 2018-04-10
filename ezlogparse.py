@@ -31,7 +31,6 @@ class parse_ezlog(object):
 		self.tzone = list()		#4]
 		self.request = list()	#6
 		self.bytes = list()		#7
-		self.csv_string = ""
 		self.parsed = list()
 		self.unixtime = list()
 		self.prev_basetime = 0
@@ -54,13 +53,14 @@ class parse_ezlog(object):
 			self.bytes.append(self.filtered_items[i][9])			
 
 	def dumpstring(self):
+  		csv_string = ""  		
 		for i in range(len(self.filtered_items)):  		
- 			self.csv_string += self.ip[i] + ', '
-			self.csv_string += self.name[i] + ', '
-			self.csv_string += (str(self.unixtime[i]))[:-2] + ', '
-			self.csv_string += self.request[i] + ', '
-			self.csv_string += self.bytes[i] + '\n'
-			self.parsed = self.csv_string
+ 			csv_string += self.ip[i] + ', '
+			csv_string += self.name[i] + ', '
+			csv_string += (str(self.unixtime[i]))[:-2] + ', '
+			csv_string += self.request[i] + ', '
+			csv_string += self.bytes[i] + '\n'
+			self.parsed = csv_string
 		return self.parsed   		
 	
 	def csvdump(self):
