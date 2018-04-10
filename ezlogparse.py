@@ -88,11 +88,11 @@ class parse_ezlog(object):
 		#for letter, count in self.name_count.most_common():
 		#	print "{1} : {0}".format(letter, count)
 
-	def count_oncampus_occurences(self):
+	def count_oncampus_occurences(self, data_in):
 		on_campus_count = 0
 		off_campus_count = 0   		
-		for i in range(len(self.filtered_items)):
-			if self.filtered_items[i][0].startswith(on_campus_ipaddr):
+		for i in range(len(data_in)):
+			if data_in[i][0].startswith(on_campus_ipaddr):
 				on_campus_count += 1
 			else:
 				off_campus_count += 1
@@ -117,6 +117,12 @@ class parse_ezlog(object):
 			self.unixtime.append(int(time.mktime(dt_temp.timetuple())))
 		return self.unixtime
 
+	def locate_index(self, str_lookup):
+		for x in range(len(self.unixtime)):
+			if str(str_lookup) in str(self.unixtime[x]):
+				break
+		return x
+
 	def get_slice_timewindow(self, prev):
 		if self.prev_basetime is 0:
 			new_basetime = self.unixtime[0]
@@ -124,22 +130,37 @@ class parse_ezlog(object):
 		print "prev: {0}".format(new_basetime)
 		return new_basetime
 
-	def get_statistics(self):
-		basetime = self.get_slice_timewindow(self.prev_basetime)
-		uppertime = basetime + timewindow
-		print "base: {0}, upper: {1}".format(basetime, uppertime)
-		# do some processing
-		self.prev_basetime = uppertime
+	def generate_statistics(self):
+		iter = 1
+		#while True:
+		for x in range(2):
+    		
+			print "---------------------------".format()
+			print "Timeslice #{0}".format(iter)
+			basetime = self.get_slice_timewindow(self.prev_basetime)
+			uppertime = basetime + timewindow
+			baseindex = self.locate_index(basetime)		
+			upperindex = self.locate_index(uppertime)
+			print "EOL: {0}".format(len(self.filtered_items))
+			# check if upperindex is end of data
+			#if upperindex > len(self.filtered_items):
+    		#		break
+			#else: pass
+			print "base: {0} [{1}], upper: {2} [{3}]".format(basetime, baseindex, uppertime, upperindex)
+			# do some processing
+			self.count_oncampus_occurences(self.filtered_items[baseindex:upperindex])
+			self.prev_basetime = uppertime
+			iter += 1
 
 
 items = parse_ezlog(in_file)
-items.search(keyword)
+temp = items.search(keyword)
 items.extract()
 items.dt_to_unix_timestamp()
 items.dumpstring()
 items.csvdump()
 
 items.count_occurences()
-items.count_oncampus_occurences()
+items.count_oncampus_occurences(temp)
 
-items.get_statistics()
+items.generate_statistics()
