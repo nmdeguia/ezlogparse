@@ -8,6 +8,9 @@ script, in_file, keyword, out_file = argv
 
 on_campus_ipaddr = '10.?' # ip_address of campus networks
 timewindow = 86400
+debug = 'nice, that line is correct'
+# just a debug string
+# print whenever needed
 
 class parse_ezlog(object):
 	
@@ -24,15 +27,16 @@ class parse_ezlog(object):
 		
 		self.ip = list()		#0
 		self.name = list()		#2
-		self.datetime = list()		#3[
+		self.datetime = list()	#3[
 		self.tzone = list()		#4]
 		self.request = list()	#6
 		self.bytes = list()		#7
 		self.csv_string = ""
 		self.parsed = list()
 		self.unixtime = list()
+		self.prev_basetime = 0
+		self.prev_uppertime = 0	
 
-		
 	def search(self, keyword):
 		for i in range(len(self.str_split)):
 			for j in range(7):	#search all fields
@@ -97,21 +101,36 @@ class parse_ezlog(object):
 
 	def dt_to_unix_timestamp(self):
 		for x in range(len(self.datetime)):
-			self.dt = re.split(r"[[/:]+", self.filtered_items[x][3])
+			dt = re.split(r"[[/:]+", self.filtered_items[x][3])
 			# print "date : month : year : 24-hour-time : minute : seconds"	
-			self.dt[2] = time.strptime(self.dt[2], '%b').tm_mon
-			self.dt.pop(0) # remove blank element from start of list
-			self.yr = int(self.dt[2])
-			self.mo = int(self.dt[1])
-			self.day = int(self.dt[0])
-			self.hr = int(self.dt[3])
-			self.mn = int(self.dt[4])
-			self.sc = int(self.dt[5])
-			self.tz = int(self.tzone[x][2:])
+			dt[2] = time.strptime(dt[2], '%b').tm_mon
+			dt.pop(0) # remove blank element from start of list
+			yr = int(dt[2])
+			mo = int(dt[1])
+			day = int(dt[0])
+			hr = int(dt[3])
+			min = int(dt[4])
+			sec = int(dt[5])
+			tz = int(self.tzone[x][2:])
 			# convert dt to unix timestamp:
-			self.dt_temp = datetime.datetime(self.yr,self.mo,self.day,self.hr,self.mn,self.sc,self.tz)
-			self.unixtime.append(int(time.mktime(self.dt_temp.timetuple())))
+			dt_temp = datetime.datetime(yr,mo,day,hr,min,sec,tz)
+			self.unixtime.append(int(time.mktime(dt_temp.timetuple())))
 		return self.unixtime
+
+	def get_slice_timewindow(self, prev):
+		if self.prev_basetime is 0:
+			new_basetime = self.unixtime[0]
+		else: new_basetime = self.prev_basetime
+		print "prev: {0}".format(new_basetime)
+		return new_basetime
+
+	def get_statistics(self):
+		basetime = self.get_slice_timewindow(self.prev_basetime)
+		uppertime = basetime + timewindow
+		print "base: {0}, upper: {1}".format(basetime, uppertime)
+		# do some processing
+		self.prev_basetime = uppertime
+
 
 items = parse_ezlog(in_file)
 items.search(keyword)
@@ -122,3 +141,5 @@ items.csvdump()
 
 items.count_occurences()
 items.count_oncampus_occurences()
+
+items.get_statistics()
