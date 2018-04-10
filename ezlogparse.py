@@ -1,4 +1,5 @@
 from sys import argv
+from collections import Counter
 
 script, in_file, out_file = argv
 
@@ -7,12 +8,6 @@ def niceprint(list):
 	for i in list:
 		print i
 	print '------------------------------------------------------------' #60
-	return
-
-def strprintln(string):
-	print '++++++++++++++++++++' #20
-	print string.split('\n')
-	print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++' #60
 	return
 	
 class EZlog(object):
@@ -35,6 +30,7 @@ class EZlog(object):
 		self.request = list()	#6
 		self.csv_string = ""
 		self.parsed = list()
+		
 		
 	def search(self, keyword):
 		#self.lookup = list()	#reinitialize lookup list
@@ -80,17 +76,35 @@ class EZlog(object):
 		self.out_file.write(self.parsed)
 		self.out_file.close()
 			
-	def analyze(self):
-		pass
-			
+	def count(self):
+		#self.ip_count = list(Counter(self.ip))
+		
+		self.ip_count = Counter(self.ip)
+		self.name_count = Counter(self.name)
+		self.date_count = Counter(self.date)
+		self.tzone_count = Counter(self.tzone)
+		self.request_count = Counter(self.request)
+		
+		#for i in range(len(self.ip_count)):
+		#	print "{0}:{1}".format(i, self.ip_count[i])
+		
+		print "Number of Occurences: Corresponding IP Address"
+		for letter, count in self.ip_count.most_common():
+			print "{1} : {0}".format(letter, count)
+		
+		print "Number of Occurences: Corresponding Names"
+		for letter, count in self.name_count.most_common():
+			print "{1} : {0}".format(letter, count)
+		
+		
 a = EZlog(in_file)
 b = EZlog(in_file)
 c = EZlog(in_file)
 
-print 'this is raw of a'
+#print 'this is raw of a'
 #niceprint(a.raw)
 
-print 'this is lookup of a'
+#print 'this is lookup of a'
 a.search('.pdf')
 #niceprint(a.search('.pdf'))
 
@@ -110,3 +124,21 @@ a.extract()
 a.csvdump()
 #b.csvappend()
 #c.csvappend()
+
+a.count()
+#print "Class Counter"
+#print Counter(a.ip)
+#print "List Counter"
+#print list(Counter(a.ip))
+#print "--------------------------------------------------"
+#print a.ip_count
+#print type(a.ip_count)
+
+print a.ip_count
+#print a.name_count
+#print a.date_count
+#print a.tzone_count
+#print a.request_count
+
+#print "The most common IP is {}".format(a.ip_count.most_common().pop(0))
+#print type(a.ip_count.most_common().pop(0))
