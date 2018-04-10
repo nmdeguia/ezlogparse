@@ -22,7 +22,7 @@ class parse_ezlog(object):
 		self.name = list()		#2
 		self.date = list()		#3[
 		self.tzone = list()		#4]
-		self.request = list()	#6
+		self.request = list()		#6
 		self.bytes = list()		#7
 		self.csv_string = ""
 		self.parsed = list()
