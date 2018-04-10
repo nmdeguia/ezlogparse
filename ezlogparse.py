@@ -15,8 +15,8 @@ class parse_ezlog(object):
 		with open(in_file, 'r') as f:
 			self.str_split = [i.split() for i in f]	#used in search function
 		
-		self.lookup = list()	#used in search function
-		#self.gen_lookup = list()
+		self.filtered_items = list()	#used in search function
+		#self.gen_filtered_items = list()
 		
 		self.ip = list()		#0
 		self.name = list()		#2
@@ -31,16 +31,16 @@ class parse_ezlog(object):
 		for i in range(len(self.str_split)):
 			for j in range(7):	#search all fields
 				if keyword in self.str_split[i][j]:
-					self.lookup.append(self.str_split[i])
-		return self.lookup
+					self.filtered_items.append(self.str_split[i])
+		return self.filtered_items
 		
 	def extract(self):
-		for i in range(len(self.lookup)):
-			self.ip.append(self.lookup[i][0])
-			self.name.append(self.lookup[i][2])
-			self.date.append(self.lookup[i][3].strip('['))
-			self.tzone.append(self.lookup[i][4].strip(']'))
-			self.request.append(self.lookup[i][6])
+		for i in range(len(self.filtered_items)):
+			self.ip.append(self.filtered_items[i][0])
+			self.name.append(self.filtered_items[i][2])
+			self.date.append(self.filtered_items[i][3].strip('['))
+			self.tzone.append(self.filtered_items[i][4].strip(']'))
+			self.request.append(self.filtered_items[i][6])
 			self.csv_string += self.ip[i] + ', '
 			self.csv_string += self.name[i] + ', '
 			self.csv_string += self.date[i] + ', '
@@ -77,15 +77,15 @@ class parse_ezlog(object):
 	def count_oncampus_occurences(self):
 		on_campus_count = 0
 		off_campus_count = 0   		
-		for i in range(len(self.lookup)):
-			if on_campus_ipaddr in self.lookup[i][0]:
+		for i in range(len(self.filtered_items)):
+			if on_campus_ipaddr in self.filtered_items[i][0]:
 				on_campus_count += 1
 			else:
 				off_campus_count += 1
 		print "Number of on campus accesses: {0}".format(on_campus_count)
 		print "Number of on campus accesses: {0}".format(off_campus_count)
 
-	def split_date_time():
+	def convert_dt_to_seconds():
 		pass
 
 items = parse_ezlog(in_file)
