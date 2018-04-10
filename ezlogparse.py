@@ -3,6 +3,8 @@ from collections import Counter
 
 script, in_file, keyword, out_file = argv
 
+on_campus_ipaddr = '10.'
+
 def niceprint(list):
 	print '--------------------' #20
 	for i in list:
@@ -28,6 +30,7 @@ class parse_ezlog(object):
 		self.date = list()		#3[
 		self.tzone = list()		#4]
 		self.request = list()	#6
+		self.bytes = list()		#7
 		self.csv_string = ""
 		self.parsed = list()
 		
@@ -63,7 +66,7 @@ class parse_ezlog(object):
 		self.out_file.write(self.parsed)
 		self.out_file.close()
 			
-	def count(self):		
+	def count_occurences(self):		
 		self.ip_count = Counter(self.ip)
 		self.name_count = Counter(self.name)
 		self.date_count = Counter(self.date)
@@ -77,8 +80,18 @@ class parse_ezlog(object):
 		print "Number of Occurences: Corresponding Names"
 		for letter, count in self.name_count.most_common():
 			print "{1} : {0}".format(letter, count)
-		
-		
+
+	def count_oncampus_occurences(self):
+		on_campus_count = 0
+		off_campus_count = 0   		
+		for i in range(len(self.str_split)):
+			if on_campus_ipaddr in self.str_split[i][0]:
+				on_campus_count += 1
+			else:
+				off_campus_count += 1
+		print("Number of on campus accesses: %i" % on_campus_count)
+		print("Number of off campus accesses: %i" % off_campus_count)
+
 items = parse_ezlog(in_file)
 
 #print 'this is raw of a'
@@ -87,7 +100,6 @@ items = parse_ezlog(in_file)
 #print 'this is lookup of a'
 items.search(keyword)
 #niceprint(a.search('.pdf'))
-
 #b.search('BARTON')
 #c.search('86.55.237.139')
 
@@ -105,7 +117,8 @@ items.csvdump()
 #b.csvappend()
 #c.csvappend()
 
-items.count()
+items.count_occurences()
+items.count_oncampus_occurences()
 #print "Class Counter"
 #print Counter(a.ip)
 #print "List Counter"
