@@ -1,3 +1,5 @@
+# vim: set tabstop=4:softtabstop=4:shiftwidth=4:noexpandtab #
+
 from sys import argv
 from collections import Counter
 import time
@@ -7,7 +9,7 @@ import re
 script, in_file, keyword, out_file = argv
 
 on_campus_ipaddr = '10.?' # ip_address of campus networks
-timewindow = 86400
+timewindow = 86400/60
 debug = 'nice, that line is correct'
 # just a debug string
 # print whenever needed
@@ -57,7 +59,7 @@ class parse_ezlog(object):
 		for i in range(len(self.filtered_items)):  		
  			csv_string += self.ip[i] + ', '
 			csv_string += self.name[i] + ', '
-			csv_string += (str(self.unixtime[i]))[:-2] + ', '
+			csv_string += (str(self.unixtime[i])) + ', '
 			csv_string += self.request[i] + ', '
 			csv_string += self.bytes[i] + '\n'
 			self.parsed = csv_string
@@ -102,26 +104,21 @@ class parse_ezlog(object):
 	def dt_to_unix_timestamp(self):
 		for x in range(len(self.datetime)):
 			dt = re.split(r"[[/:]+", self.filtered_items[x][3])
-			# print "date : month : year : 24-hour-time : minute : seconds"	
-			dt[2] = time.strptime(dt[2], '%b').tm_mon
+			dt[2] = time.strptime(dt[2], '%b').tm_mon # month to number
 			dt.pop(0) # remove blank element from start of list
-			yr = int(dt[2])
-			mo = int(dt[1])
-			day = int(dt[0])
-			hr = int(dt[3])
-			min = int(dt[4])
-			sec = int(dt[5])
+			dt = list(map(int, dt))
 			tz = int(self.tzone[x][2:])
 			# convert dt to unix timestamp:
-			dt_temp = datetime.datetime(yr,mo,day,hr,min,sec,tz)
-			self.unixtime.append(int(time.mktime(dt_temp.timetuple())))
+			# dt_temp = datetime.datetime(yr,mo,day,hr,min,sec,tz) = float
+			temp = datetime.datetime(dt[2],dt[1],dt[0],dt[3],dt[4],dt[5],tz)			
+			self.unixtime.append(int(time.mktime(temp.timetuple())))
+		print(self.unixtime[0])
 		return self.unixtime
 
+	# not working yet
 	def locate_index(self, str_lookup):
-		for x in range(len(self.unixtime)):
-			if str(str_lookup) in str(self.unixtime[x]):
-				break
-		return x
+		#return self.unixtime.index(int(str_lookup))
+		pass
 
 	def get_slice_timewindow(self, prev):
 		if self.prev_basetime is 0:
@@ -131,22 +128,26 @@ class parse_ezlog(object):
 		return new_basetime
 
 	def generate_statistics(self):
+ 		print "---------------------------".format() 
+		print "Generating Statistics".format()  		
+		print "EOL: {0}".format(len(self.filtered_items)) # End of line	
+		print "Initial timestamp: {0}".format(self.unixtime[0])	
+		print "Last timestamp: {0}".format(self.unixtime[len(self.unixtime)-1])
 		iter = 1
 		#while True:
 		for x in range(2):
-    		
 			print "---------------------------".format()
 			print "Timeslice #{0}".format(iter)
 			basetime = self.get_slice_timewindow(self.prev_basetime)
 			uppertime = basetime + timewindow
 			baseindex = self.locate_index(basetime)		
 			upperindex = self.locate_index(uppertime)
-			print "EOL: {0}".format(len(self.filtered_items))
 			# check if upperindex is end of data
 			#if upperindex > len(self.filtered_items):
     		#		break
 			#else: pass
-			print "base: {0} [{1}], upper: {2} [{3}]".format(basetime, baseindex, uppertime, upperindex)
+			#print "base: {0} [{1}], upper: {2} [{3}]".format(basetime, baseindex, uppertime, upperindex)
+			print "base: {0}, upper: {1}".format(basetime, uppertime)			
 			# do some processing
 			self.count_oncampus_occurences(self.filtered_items[baseindex:upperindex])
 			self.prev_basetime = uppertime
