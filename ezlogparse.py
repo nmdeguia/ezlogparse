@@ -169,7 +169,7 @@ class parse_ezlog(object):
 		#Assumes myList is sorted. Returns closest value to myNumber.
 		#If two numbers are equally close, return the smallest number.
 		self.pos_index = bisect_left(myList, myNumber)
-		print "Current pos is {} and value compared to {}".format(self.pos_index, myNumber)
+		#print "Current pos is {} and value is compared to {}".format(self.pos_index, myNumber)
 		if self.pos_index == 0:
 			return myList[0]
 		if self.pos_index == len(myList):
@@ -179,13 +179,16 @@ class parse_ezlog(object):
 		Last = myList[self.pos_index - 1]
 		Next = myList[self.pos_index]
 		
-		if Next - myNumber < myNumber - Last:
-			print "Next time window starts at: {} at pos: {}".format(Next, self.pos_index)
-			return Next
-		else:
-			self.pos_index -= 1
-			print "Last item for this timewindow is: {} at pos: {}".format(Last, self.pos_index)
-			return Last
+		print "Last in this timewindow {}".format(Last)
+		print "Next after this timewindow {}".format(Next)
+		
+#		if Next - myNumber < myNumber - Last:
+#			print "Next time window starts at: {} at pos: {}".format(Next, self.pos_index)
+#			return Next
+#		else:
+#			self.pos_index -= 1
+#			print "Last item for this timewindow is: {} at pos: {}".format(Last, self.pos_index)
+#			return Last
 			
 	# not working yet
 	def locate_index(self, str_lookup):
