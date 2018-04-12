@@ -34,6 +34,10 @@ class parse_ezlog(object):
 		self.tzone = list()		#4]
 		self.request = list()	#6
 		self.bytes = list()		#7
+		
+		self.slice_value = list()
+		self.difference = list()
+		self.slice_count = 0
 		self.parsed = list()
 		self.unixtime = list()
 		self.basetime = 0
@@ -123,71 +127,13 @@ class parse_ezlog(object):
 		#print "Base time is: {}".format(self.unixtime[0])
 		return self.unixtime
 		
-	def get_timeslices(self):
-		self.basetime = self.unixtime[0]
-		self.finaltime = self.unixtime[len(self.unixtime)-1]
-		elapsed_time = self.finaltime - self.basetime
-		timeslices = (elapsed_time/timewindow) + 1
-		print "Basetime: {} seconds".format(self.basetime)
-		print "Finaltime: {} seconds".format(self.finaltime)
-		print "Time Elapsed: {} seconds".format(elapsed_time)
-		print "Number of Time slices: {}.".format(timeslices)
-		print "Per Time slice: {} seconds.".format(timewindow)
-		print "------------------------------------------------------------" #60
-		slice_count = range(timeslices)
-		
-		for i in range(timeslices):
-			print "Timeslice {} is {}".format(i, self.basetime + (timewindow*i))
-			slice_count[i] = self.basetime + timewindow
-			slice_count[i] += (timewindow*(i))
-			self.takeClosest(self.unixtime, slice_count[i])
-			self.index_list.append(str(self.pos_index - 1))
-			print "------------------------------------------------------------" #60
-		
-		slice_count = map(int, slice_count)
-		self.index_list = map(int, self.index_list)
-		
-		print slice_count	#print boundaries of timewindows
-		print range(timeslices)
-		print self.index_list
-		#print self.unixtime[self.index_list[0]]
-		
-	def takeClosest(self, myList, myNumber):
-		#Assumes myList is sorted. Returns closest value to myNumber.
-		#If two numbers are equally close, return the smallest number.
-		self.pos_index = bisect_left(myList, myNumber)
-		#print "Current pos is {} and value is compared to {}".format(self.pos_index, myNumber)
-		if self.pos_index == 0:
-			return myList[0]
-		if self.pos_index == len(myList):
-			print "Last item for this timewindow is: {1} at pos: {0}".format(self.pos_index, myList[-1])
-			#print "Pos is max ({}) at {}".format(self.pos_index, myList[-1])
-			return myList[-1]
-		Last = myList[self.pos_index - 1]
-		Next = myList[self.pos_index]
-		
-		print "Last in this timewindow {}".format(Last)
-		print "Next after this timewindow {}".format(Next)
-		
-#		if Next - myNumber < myNumber - Last:
-#			print "Next time window starts at: {} at pos: {}".format(Next, self.pos_index)
-#			return Next
-#		else:
-#			self.pos_index -= 1
-#			print "Last item for this timewindow is: {} at pos: {}".format(Last, self.pos_index)
-#			return Last
-			
-	# not working yet
-	def locate_index(self, str_lookup):
-		#return self.unixtime.index(int(str_lookup))
-		pass
-
 	def get_slice_timewindow(self, time):
 		if time is 0:
 			new_basetime = self.unixtime[0]
 		else: new_basetime = time
 		print "Basetime is = {0}".format(new_basetime)
 		return new_basetime
+		
 	def generate_statistics(self):
  		print "---------------------------".format() 
 		print "Generating Statistics".format()  		
@@ -213,23 +159,96 @@ class parse_ezlog(object):
 			self.count_oncampus_occurences(self.filtered_items[baseindex:upperindex])
 			self.prev_basetime = uppertime
 			iter += 1
-		
-item = parse_ezlog(in_file)
-item.search(keyword)
-item.extract()
-item.dt_to_unix_timestamp()
-item.dumpstring()
-item.csvdump()
-item.count_occurences()
-item.count_oncampus_occurences()
 
-#item.generate_statistics()
-#print item.ranking(item.unixtime)
-item.get_timeslices()
-#print type(item.unixtime)
-#print item.unixtime
-#print item.unixtime.count(1453136531)
-#print len(item.unixtime)
-#print item.date[0]
-#print item.tzone[0]
-#print item.str_split[0]
+	def get_timeslices(self):
+		self.basetime = self.unixtime[0]
+		self.finaltime = self.unixtime[len(self.unixtime)-1]
+		elapsed_time = self.finaltime - self.basetime
+		self.timeslices = (elapsed_time/timewindow) + 2
+		print "Basetime: {} seconds".format(self.basetime)
+		print "Finaltime: {} seconds".format(self.finaltime)
+		print "Time Elapsed: {} seconds".format(elapsed_time)
+		print "Number of Time slices: {}.".format(self.timeslices -1)
+		print "Per Time slice: {} seconds.".format(timewindow)
+		print "------------------------------------------------------------" #60
+
+		self.slice_count = range(self.timeslices)
+		
+		for i in range(self.timeslices):
+			self.slice_count[i] = self.basetime + timewindow
+			self.slice_count[i] += (timewindow*(i))
+			self.index_list.append(str(self.pos_index))
+			self.index_list = map(int, self.index_list)
+			self.takeClosest(self.unixtime, self.slice_count[i])
+			self.slice_value.append(self.unixtime[self.pos_index])
+			self.difference = [self.index_list[j+1] - self.index_list[j] for j in range(len(self.index_list)-1)]
+		
+		self.slice_count.pop()
+		#self.slice_count.insert(0, self.basetime)
+		self.index_list.pop(0)
+		#self.difference.pop(0)
+		print self.timeslices
+		print self.slice_value
+		#print self.slice_count	#print boundaries of timewindows
+		print self.index_list
+		print self.difference
+		#self.difference.reverse()
+		#print self.difference
+		#print self.difference.pop()
+		print "------------------------------------------------------------" #60
+		
+		counta = 0
+		temp = 0
+		kounta = 0
+		#for i in range(self.timeslices):
+		for j in self.index_list:
+			print "Timeslice {} is {}".format(counta, self.basetime + (timewindow*counta))
+			counta += 1
+			#print self.unixtime[temp:j]]
+			tempList = self.unixtime[temp:j+1]
+			for i in tempList: print i
+			print len(tempList)
+			temp=j
+			print "------------------------------------------------------------" #60
+	
+	def takeClosest(self, myList, myNumber):
+		#Assumes myList is sorted. Returns closest value to myNumber.
+		#If two numbers are equally close, return the smallest number.
+		self.pos_index = bisect_left(myList, myNumber)
+		#print "Current pos is {} and value is compared to {}".format(self.pos_index, myNumber)
+		if self.pos_index == 0:
+			return self.pos_index
+		if self.pos_index == len(myList):
+			#print "Last item for this timewindow is: {1} at pos: {0}".format(self.pos_index, myList[-1])
+			#print "Pos is max ({}) at {}".format(self.pos_index, myList[-1])
+			self.pos_index -= 1
+			return self.pos_index
+		Last = myList[self.pos_index - 1]
+		Next = myList[self.pos_index]
+		self.pos_index -= 1
+		return self.pos_index
+		
+		#print "Last in this timewindow {}".format(Last)
+		#print "Next after this timewindow {}".format(Next)
+		
+	def extract2(self, data, ip, name, date, tzone, request, bytes):
+		for i in range(len(data)):
+			ip.append(data[i][0])
+			name.append(data[i][2])
+			date.append(data[i][3].strip('['))
+			tzone.append(data[i][4].strip(']'))
+			request.append(data[i][6])
+			bytes.append(data[i][9])
+		return (ip, name, date, tzone, request, bytes)
+		
+a = parse_ezlog(in_file)
+a.search(keyword)
+#a.extract(a.filtered_items, a.ip, a.name, a.date, a.tzone, a.request, a.bytes)
+a.extract()
+a.dt_to_unix_timestamp()
+a.dumpstring()
+a.csvdump()
+a.count_occurences()
+a.count_oncampus_occurences()
+a.get_timeslices()
+#a.between_slices()
