@@ -57,19 +57,6 @@ class parse_ezlog(object):
 			self.request.append(self.filtered_items[i][6])
 			self.bytes.append(self.filtered_items[i][9])
 
-	def search_extract(self, keyword):
-		for i in range(len(self.str_split)):
-			for j in range(7):	#search all fields
-				if keyword in self.str_split[i][j]:
-					self.filtered_items.append(self.str_split[i])
-		for i in range(len(self.filtered_items)):
-			self.ip.append(self.filtered_items[i][0])
-			self.name.append(self.filtered_items[i][2])
-			self.date.append(self.filtered_items[i][3].strip('['))
-			self.tzone.append(self.filtered_items[i][4].strip(']'))
-			self.request.append(self.filtered_items[i][6])
-			self.bytes.append(self.filtered_items[i][9])
-
 	def dumpstring(self):
   		csv_string = ""  		
 		for i in range(len(self.filtered_items)):  		
