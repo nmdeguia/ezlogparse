@@ -154,7 +154,7 @@ class parse_ezlog(object):
 			slice_count[i] = self.basetime + timewindow
 			slice_count[i] += (timewindow*(i))
 			self.takeClosest(self.unixtime, slice_count[i])
-			self.index_list.append(str(self.pos_index))
+			self.index_list.append(str(self.pos_index - 1))
 			print "------------------------------------------------------------" #60
 		
 		slice_count = map(int, slice_count)
