@@ -47,6 +47,7 @@ class parse_ezlog(object):
 		
 		self.request_rank = list()
 		self.str_stat = list()
+		self.str_stat1 = list()
 		self.unique = list()
 		self.unixtime = list()
 		self.basetime = 0
@@ -85,6 +86,11 @@ class parse_ezlog(object):
 		file.write(string)
 		file.close()
 		
+	def statappend(self, string):
+		file = open(stat_file, 'a')
+		file.write(string)
+		file.close()
+		
 	def csvdump(self, out_file):
 		file = open(out_file, 'w')
 		file.write(self.parsed)
@@ -107,7 +113,8 @@ class parse_ezlog(object):
 		print "Unique URLs:"
 		for i in self.unique:
 			count += 1
-			print "IP: {}, URL: {}".format(i[0], i[1])
+			#print "IP: {}, URL: {}".format(i[0], i[1])
+			
 			#print "URL: {}".format(i)
 			#self.unique_list = list(self.unique)
 			#self.unique_index(a, b)
@@ -178,20 +185,25 @@ class parse_ezlog(object):
 		iter = 1
 		for x in range(timeslices):
 			print "--------------------------------------------------".format()
-			print "Timeslice #{0}".format(iter),
-			basetime = self.get_slice_timewindow(self.basetime, timewindow)
-			uppertime = basetime + timewindow
-			baseindex = self.locate_index(basetime)		
+			if self.basetime is 0:
+				self.basetime = self.unixtime[0]
+			self.str_stat1 = "Timeslice #{0} ({1} - {2})".format(iter, self.basetime, self.basetime + timewindow) + "\n"
+			
+			#basetime = self.get_slice_timewindow(self.basetime, timewindow)
+			uppertime = self.basetime + timewindow
+			baseindex = self.locate_index(self.basetime)		
 			upperindex = self.locate_index(uppertime) - 1
 			upperindexvalue = self.unixtime[upperindex]
 			baseindexvalue = self.unixtime[baseindex]
-			print "Base: {0} [{1}], Upper: {2} [{3}]".format(baseindexvalue, baseindex, upperindexvalue, upperindex)
-			print "Number of items in sublist: {0}".format(len(self.unixtime[baseindex:upperindex]) + 1)
+			self.str_stat1 += "Base: {0} [{1}], Upper: {2} [{3}]".format(baseindexvalue, baseindex, upperindexvalue, upperindex) + "\n"
+			self.str_stat1 += "Number of items in sublist: {0}".format(len(self.unixtime[baseindex:upperindex]) + 1) + "\n"
 			# do some processing
 			# put your statistics function here
+			print self.str_stat1
 			self.count_oncampus_occurences(self.filtered_items[baseindex:upperindex])
 			self.ranking(baseindex, upperindex)
 			self.unique_content(baseindex, upperindex)
+			#self.statappend(self.str_stat1)
 
 			# checks if timeslice is the last one
 			# ends loop if timeslice reaches EOL
