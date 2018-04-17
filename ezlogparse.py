@@ -33,7 +33,7 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 
 	if (genstat):
 		generate_statistics(data, timewindow)
-		dump_string_to_out(data.str_stat, stat_file)
+		#dump_string_to_out(data.str_stat, stat_file)
 		print '--------------------------------------------------'
 		print 'Statistical report complete'
 		print 'Stat file: {0}'.format(stat_file)
@@ -71,8 +71,10 @@ class parse_ezlog(object):
 		self.bytes = list()		#7
 		
 		self.request_rank = list()
-		self.str_stat = list()
-		self.str_stat1 = list()
+		self.str_stat = ""
+		self.str_stat1 = ""
+		self.str_stat2 = ""
+		self.str_stat3 = ""
 		self.unique = list()
 		self.unixtime = list()
 		self.basetime = 0
@@ -93,11 +95,6 @@ class parse_ezlog(object):
 			self.request.append(self.filtered_items[i][6])
 			self.bytes.append(self.filtered_items[i][9])
 		
-	# def statappend(self, string):
-	# 	file = open(stat_file, 'a')
-	# 	file.write(string)
-	# 	file.close()
-		
 	def ranking(self, a, b):
 		count = 0
 		if (verbose): print 'Count of duplicate URLs:'
@@ -105,7 +102,9 @@ class parse_ezlog(object):
 		#self.request_rank = list(self.request_count.most_common())
 		for i in self.request_count.most_common():
 			count += 1
-			if (verbose): print 'Content ID: {0:03d}, Number of requests: {1}'.format(count, i[1])
+			string = 'Content ID: {0:03d}, Number of requests: {1}'.format(count, i[1])
+			if (verbose): print string
+			append_string_to_out(string + '\n', stat_file)
 		
 	def unique_content(self, a, b):
 		count = 0
@@ -120,7 +119,9 @@ class parse_ezlog(object):
 			#print 'URL: {}'.format(i)
 			#self.unique_list = list(self.unique)
 			#self.unique_index(a, b)
-		if (verbose): print 'Number of unique URLs: {}'.format(count)
+		string = 'Number of unique URLs: {}\n'.format(count)
+		if (verbose): print string
+		append_string_to_out(string + '\n', stat_file)
 
 	def unique_index(self, a, b):
 		pass
@@ -165,8 +166,11 @@ def count_oncampus_occurences(data_in):
 			on_campus_count += 1
 		else:
 			off_campus_count += 1
-	if (verbose): print 'Number of on-campus accesses: {0}'.format(on_campus_count)
-	if (verbose): print 'Number of off-campus accesses: {0}'.format(off_campus_count + 1)
+	string = 'Number of on-campus accesses: {0}\n'.format(on_campus_count)
+	string += 'Number of off-campus accesses: {0}'.format(off_campus_count + 1)
+	if (verbose): print string
+	append_string_to_out(string + '\n', stat_file)
+
 	
 def generate_statistics(items, timewindow):
 	finaltime = items.unixtime[len(items.unixtime)-1]
@@ -174,20 +178,21 @@ def generate_statistics(items, timewindow):
 	timeslices = (elapsedtime/timewindow)+1
 	
 	print 'Generating Statistics'
-	items.str_stat = 'Initial timestamp: {0} [{1}]'.format(items.unixtime[0], 0) + '\n'
-	items.str_stat += 'Final timestamp: {0} [{1}]'.format(items.unixtime[len(items.unixtime)-1],len(items.unixtime)-1)+'\n'
-	items.str_stat += 'Total number of items: {}'.format(len(items.unixtime))  + '\n'
-	items.str_stat += 'Number of time slices: {}.'.format(timeslices) + '\n'
-	items.str_stat += 'Per time slice: {} seconds.'.format(timewindow)
+	string = 'Initial timestamp: {0} [{1}]'.format(items.unixtime[0], 0) + '\n'
+	string += 'Final timestamp: {0} [{1}]'.format(items.unixtime[len(items.unixtime)-1],len(items.unixtime)-1)+'\n'
+	string += 'Total number of items: {}'.format(len(items.unixtime))  + '\n'
+	string += 'Number of time slices: {}.'.format(timeslices) + '\n'
+	string += 'Per time slice: {} seconds.\n'.format(timewindow) + '\n'
 	
-	print items.str_stat
+	print string
+	dump_string_to_out(string, stat_file)
 
 	iter = 1
 	for x in range(timeslices):
 		if (verbose): print '--------------------------------------------------'.format()
 		if items.basetime is 0:
 			items.basetime = items.unixtime[0]
-		items.str_stat1 = 'Timeslice no. {0} ({1} - {2})'.format(iter, items.basetime, items.basetime + timewindow) + '\n'
+		string = 'Timeslice no. {0} ({1} - {2})'.format(iter, items.basetime, items.basetime + timewindow) + '\n'
 		
 		#basetime = items.get_slice_timewindow(items.basetime, timewindow)
 		uppertime = items.basetime + timewindow
@@ -195,16 +200,18 @@ def generate_statistics(items, timewindow):
 		upperindex = items.locate_index(uppertime) - 1
 		upperindexvalue = items.unixtime[upperindex]
 		baseindexvalue = items.unixtime[baseindex]
-		items.str_stat1 += 'Base: {0} [{1}], Upper: {2} [{3}]'.format(baseindexvalue, baseindex, upperindexvalue, upperindex) + '\n'
-		items.str_stat1 += 'Number of items in sublist: {0}'.format(len(items.unixtime[baseindex:upperindex]) + 1) + '\n'
+		string += 'Base: {0} [{1}], Upper: {2} [{3}]\n'.format(baseindexvalue, baseindex, upperindexvalue, upperindex)
+		string += 'Number of items in sublist: {0}'.format(len(items.unixtime[baseindex:upperindex]) + 1)
+		
 		# do some processing
 		# put your statistics function here
-		if (verbose): print items.str_stat1
+		if (verbose): print string
+		append_string_to_out(string + '\n', stat_file)
+
 		count_oncampus_occurences(items.filtered_items[baseindex:upperindex])
 		items.ranking(baseindex, upperindex)
 		items.unique_content(baseindex, upperindex)
-		#items.statappend(items.str_stat1)
-
+				
 		# checks if timeslice is the last one
 		# ends loop if timeslice reaches EOL
 		if x == timeslices-1: break
@@ -228,6 +235,11 @@ def dump_string_to_out(string, filename):
 	file = open(filename, 'w')
 	file.write(string)
 	file.close()
+
+def append_string_to_out(string, filename):
+	file = open(filename, 'a')
+ 	file.write(string)
+ 	file.close()
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -286,4 +298,4 @@ if __name__ == '__main__':
 		stat_file = args.stat_file,
 		keyword = args.keyword,
 		timewindow = args.timewindow
-	)
+)
