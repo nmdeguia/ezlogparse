@@ -114,23 +114,12 @@ class parse_ezlog(object):
 		#print 'Unique URLs:'
 		for i in self.unique:
 			count += 1
-			#print 'IP: {}, URL: {}'.format(i[0], i[1])
+			#string = 'IP{}: {}\nURL{}: {}'.format(count, i[0], count, i[1])
+			#append_string_to_out(string + '\n', stat_file)
 			
-			#print 'URL: {}'.format(i)
-			#self.unique_list = list(self.unique)
-			#self.unique_index(a, b)
 		string = 'Number of unique URLs: {}\n'.format(count)
 		if (verbose): print string
 		append_string_to_out(string + '\n', stat_file)
-
-	def unique_index(self, a, b):
-		pass
-		#for i in range(len(self.unixtime[a:b+1])):
-		#count = 0
-		#for i in range(len(self.request[a:b+1])):
-		#	if str(self.unique_list[a:b+1]) in self.request[a:b+1]:
-		#		count += 1	
-		#print count
 
 	def dt_to_unix_timestamp(self):
 		for i in range(len(self.date)):
