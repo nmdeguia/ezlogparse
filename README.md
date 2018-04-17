@@ -7,6 +7,7 @@ Parser for data logs saved by ezproxy using Python.
 | Arguments | Description | Default Values | Type |
 | --- | --- | --- | --- |
 | `--verbose, -v` | Verbose output, prints statistics | OFF | None
+| `--genstat, -gst` | Generate statistical report | OFF | None
 | `--in_file, -f` | Use custom input log file | data.log | string
 | `--out_file, -o` | Specify output file | parsed.csv | string
 | `--stat_file, -s` | Specify output stat file | stat.csv | string
