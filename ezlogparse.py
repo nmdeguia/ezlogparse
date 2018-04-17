@@ -6,14 +6,25 @@ from bisect import bisect_left
 import time
 import datetime
 import re
-
-script, in_file, keyword, out_file = argv
+import argparse
 
 on_campus_ipaddr = '10.?' # ip_address of campus networks
 timewindow = 14400	# 1 day = 86400s
 debug = 'nice, that line is correct'
 # just a debug string
 # print whenever needed
+
+def main(in_file, out_file, keyword):
+    	data = parse_ezlog(in_file)
+	temp = data.search(keyword)
+	data.extract()
+	data.dt_to_unix_timestamp()
+	data.dumpstring()
+	data.csvdump(out_file)	
+
+	#data.count_occurences()
+	#data.count_oncampus_occurences(temp)
+	data.generate_statistics()
 
 class parse_ezlog(object):
 	
@@ -66,7 +77,7 @@ class parse_ezlog(object):
 			self.parsed = csv_string
 		return self.parsed   		
 	
-	def csvdump(self):
+	def csvdump(self, out_file):
 		file = open(out_file, 'w')
 		file.write(self.parsed)
 		file.close()
@@ -87,7 +98,6 @@ class parse_ezlog(object):
 		self.byte_ranked = self.byte_count.most_common()
 				
 	def ranking(self, data_count, a, b):
-		print debug
 		counta = 0
 		for i in range(len(data_count)):
 			ip = Counter(data_count[a:b][0])
@@ -96,14 +106,14 @@ class parse_ezlog(object):
 			tzone = Counter(data_count[a:b][4])
 			request = Counter(data_count[a:b][6])
 			#byte = Counter(data_count[a:b][9])
-			for x in ip.most_common(1): counta += 1
+			#for x in ip.most_common(1): counta += 1
 			#for i in name.most_common(1): print i
 			#for i in date.most_common(1): print i
 			#for i in tzone.most_common(1): print i
 			#for i in request.most_common(1): print i
 			#print ip
-		print counta	
-		#return ip, name, date, tzone, request
+		print counta
+		return ip, name, date, tzone, request
 		
 	def ranking2(self, data_count):
 		self.ranks = Counter(data_count)
@@ -174,19 +184,42 @@ class parse_ezlog(object):
 			# do some processing
 			# put your statistics function here
 			self.count_oncampus_occurences(self.filtered_items[baseindex:upperindex])
-			#self.ranking(self.filtered_items, baseindex, upperindex)
+			self.ranking(self.filtered_items, baseindex, upperindex)
 
 			# checks if timeslice is the last one
 			# ends loop if timeslice reaches EOL
 			if x == timeslices-1: break
 			else: self.basetime = uppertime
 			iter += 1
-		
-a = parse_ezlog(in_file)
-a.search(keyword)
-a.extract()
-a.dt_to_unix_timestamp()
-a.dumpstring()
-a.csvdump()
-a.generate_statistics()
-#a.ranking2(Counter(a.ip))
+
+if __name__ == '__main__':
+    	parser = argparse.ArgumentParser()
+	parser.add_argument(
+        '--in_file','-f',
+		type = str,
+        help = 'Use custom input file',
+        default = 'data-small'
+    )
+	parser.add_argument(
+        '--out_file','-o',
+		type = str,
+        help = 'Use custom output file',
+        default = 'parsed-out.csv'
+    )
+	parser.add_argument(
+        '--keyword','-k',
+		type = str,
+        help = 'Specify keyword',
+        default = '.pdf'
+    )
+	parser.add_argument(
+		'--verbose','-v',
+		action = 'store_true',
+        help = 'Print verbose conversions',
+    )	
+	args = parser.parse_args()	
+	main(
+		in_file = args.in_file,
+		out_file = args.out_file,
+		keyword = args.keyword
+	)
