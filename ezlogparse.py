@@ -8,7 +8,7 @@ import datetime
 import re
 import argparse
 
-ezlogparse_version = '1.0'
+ezlogparse_version = '2.0'
 debug = 'nice, that line is correct'
 # just a debug string
 # print whenever needed
@@ -31,11 +31,12 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	print 'Data file: {0}'.format(out_file)
 	print '--------------------------------------------------'
 
-	generate_statistics(data, timewindow)
-	dump_string_to_out(data.str_stat, stat_file)
-	print '--------------------------------------------------'
-	print 'Statistical report complete'
-	print 'Stat file: {0}'.format(stat_file)
+	if (genstat):
+		generate_statistics(data, timewindow)
+		dump_string_to_out(data.str_stat, stat_file)
+		print '--------------------------------------------------'
+		print 'Statistical report complete'
+		print 'Stat file: {0}'.format(stat_file)
 
 	total_time = (time.time() - start_time)/100.0
 	print 'Total run time: {0}'.format(elapsed_time(time.time() - start_time))
@@ -174,7 +175,7 @@ def generate_statistics(items, timewindow):
 	
 	print 'Generating Statistics'
 	items.str_stat = 'Initial timestamp: {0} [{1}]'.format(items.unixtime[0], 0) + '\n'
-	items.str_stat += 'Last timestamp: {0} [{1}]'.format(items.unixtime[len(items.unixtime)-1],len(items.unixtime)-1)+'\n'
+	items.str_stat += 'Final timestamp: {0} [{1}]'.format(items.unixtime[len(items.unixtime)-1],len(items.unixtime)-1)+'\n'
 	items.str_stat += 'Total number of items: {}'.format(len(items.unixtime))  + '\n'
 	items.str_stat += 'Number of time slices: {}.'.format(timeslices) + '\n'
 	items.str_stat += 'Per time slice: {} seconds.'.format(timewindow)
@@ -234,7 +235,7 @@ if __name__ == '__main__':
 		'--in_file','-f',
 		type = str,
 		help = 'Use custom input file',
-		default = 'data-small.log'
+		default = 'data.log'
 	)
 	parser.add_argument(
 		'--out_file','-o',
@@ -270,6 +271,11 @@ if __name__ == '__main__':
 		'--verbose','-v',
 		action = 'store_true',
 		help = 'Print verbose conversions',
+	)
+	parser.add_argument(
+		'--genstat','-gst',
+		action = 'store_true',
+		help = 'Generate statistical report',
 	)	
 	args = parser.parse_args()	
 	# passes arguments to global namespace:
