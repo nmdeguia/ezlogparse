@@ -12,7 +12,7 @@ Parser for data logs saved by ezproxy using Python.
 | --out_file, -o | Specify output file | parsed.csv | string
 | --stat_file, -s | Specify output stat file | stat.csv | string
 | --keyword, -k | Lookup filtering keyword | '.pdf' | string
-| --timewindow, -t | Specify timewindow | 4 hours = 14400 seconds | integer
+| --timewindow, -t | Specify timewindow | 14400 seconds | integer
 | --oncampaddr, -ipc | Specify campus ip address | 10.X.X.X | string
 
 Sample usage: 
