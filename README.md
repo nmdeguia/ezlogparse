@@ -15,6 +15,10 @@ Parser for data logs saved by ezproxy using Python.
 | `--timewindow, -t` | Specify timewindow | 4 hours = 14400 seconds | integer
 | `--oncampaddr, -ipc` | Specify campus ip address | 10.X.X.X | string
 
+Sample usage: 
+
+`$ python ezlogparse.py -v -f ezproxy.log -gst`
+
 ### Version:
 
 Version 2.0:
