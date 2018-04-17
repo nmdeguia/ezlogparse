@@ -9,22 +9,20 @@ import re
 import argparse
 
 on_campus_ipaddr = '10.?' # ip_address of campus networks
-timewindow = 14400	# 1 day = 86400s
+global timewindow #14400	# 1 day = 86400s, 12 hours = 43200s, 6 hours = 21600, 
 debug = 'nice, that line is correct'
 # just a debug string
 # print whenever needed
 
-def main(in_file, out_file, keyword):
-    	data = parse_ezlog(in_file)
-	temp = data.search(keyword)
+def main(in_file, out_file, stat_file, keyword, timewindow):
+	data = parse_ezlog(in_file)
+	data.search(keyword)
 	data.extract()
 	data.dt_to_unix_timestamp()
 	data.dumpstring()
 	data.csvdump(out_file)	
-
-	#data.count_occurences()
-	#data.count_oncampus_occurences(temp)
-	data.generate_statistics()
+	data.generate_statistics(timewindow)
+	data.statdump(stat_file, data.str_stat)
 
 class parse_ezlog(object):
 	
@@ -45,6 +43,7 @@ class parse_ezlog(object):
 		self.request = list()	#6
 		self.bytes = list()		#7
 		
+		self.str_stat = list()
 		self.unixtime = list()
 		self.basetime = 0
 		
@@ -77,48 +76,24 @@ class parse_ezlog(object):
 			self.parsed = csv_string
 		return self.parsed   		
 	
+	def statdump(self, stat_file, string):
+		file = open(stat_file, 'w')
+		file.write(string)
+		file.close()
+		
 	def csvdump(self, out_file):
 		file = open(out_file, 'w')
 		file.write(self.parsed)
 		file.close()
+		
+	def ranking(self, a, b):
+		count = 0
+		print "Count of duplicate URLs:"
+		self.request_count = Counter(self.request[a:b+1])
+		for i in self.request_count.most_common():
+			count +=1
+			print 'Content ID: {0}, Number of requests: {1}'.format(count, i[1])
 			
-	def count_occurences(self):		
-		self.ip_count = Counter(self.ip)
-		self.name_count = Counter(self.name)
-		self.date_count = Counter(self.date)
-		self.tzone_count = Counter(self.tzone)
-		self.request_count = Counter(self.request)
-		self.byte_count = Counter(self.byte)
-		
-		self.ip_ranked = self.ip_count.most_common()
-		self.name_ranked = self.name_count.most_common()
-		self.date_ranked = self.date_count.most_common()
-		self.tzone_ranked = self.tzone_count.most_common()
-		self.request_ranked = self.request_count.most_common()
-		self.byte_ranked = self.byte_count.most_common()
-				
-	def ranking(self, data_count, a, b):
-		counta = 0
-		for i in range(len(data_count)):
-			ip = Counter(data_count[a:b][0])
-			name = Counter(data_count[a:b][2])
-			date = Counter(data_count[a:b][3])
-			tzone = Counter(data_count[a:b][4])
-			request = Counter(data_count[a:b][6])
-			#byte = Counter(data_count[a:b][9])
-			#for x in ip.most_common(1): counta += 1
-			#for i in name.most_common(1): print i
-			#for i in date.most_common(1): print i
-			#for i in tzone.most_common(1): print i
-			#for i in request.most_common(1): print i
-			#print ip
-		print counta
-		return ip, name, date, tzone, request
-		
-	def ranking2(self, data_count):
-		self.ranks = Counter(data_count)
-		for i in a.ranks.most_common(): print i
-
 	def count_oncampus_occurences(self, data_in):
 		on_campus_count = 0
 		off_campus_count = 0   		
@@ -128,7 +103,7 @@ class parse_ezlog(object):
 			else:
 				off_campus_count += 1
 		print "Number of on-campus accesses: {0}".format(on_campus_count)
-		print "Number of off-campus accesses: {0}".format(off_campus_count)
+		print "Number of off-campus accesses: {0}".format(off_campus_count + 1)
 
 	def dt_to_unix_timestamp(self):
 		for i in range(len(self.date)):
@@ -145,35 +120,37 @@ class parse_ezlog(object):
 		#print "Base time is: {}".format(self.unixtime[0])
 		return self.unixtime
 
-	def locate_index(self, timelookup):	# locates the nearest number it first encounters    	
+	def locate_index(self, timelookup):	# locates the nearest number to the left of timelookup    	
 		index = bisect_left(self.unixtime,timelookup)	# returns index
 		return int(index)
 		
-	def get_slice_timewindow(self, time):
+	def get_slice_timewindow(self, time, timewindow):
 		if time is 0:
 			new_basetime = self.unixtime[0]
 		else: new_basetime = time
 		print "({} - {})".format(new_basetime, new_basetime + timewindow)
 		return new_basetime
 		
-	def generate_statistics(self):
+	def generate_statistics(self, timewindow):
 		finaltime = self.unixtime[len(self.unixtime)-1]
 		elapsedtime = finaltime - self.unixtime[0]
-		#print elapsedtime
 		timeslices = (elapsedtime/timewindow)+1
 		
- 		print "---------------------------".format() 
-		print "Generating Statistics...".format()  			
-		print "Initial timestamp: {0} [{1}]".format(self.unixtime[0], 0)	
-		print "Last timestamp: {0} [{1}]".format(self.unixtime[len(self.unixtime)-1], len(self.unixtime) - 1)
-		print "Total Number of Items: {}".format(len(self.unixtime))
-		print "Number of Time slices: {}.".format(timeslices)
-		print "Per Time slice: {} seconds.".format(timewindow)
+ 		print "--------------------------------------------------"
+		print "Generating Statistics..."
+		self.str_stat = "Initial timestamp: {0} [{1}]".format(self.unixtime[0], 0) + "\n"
+		self.str_stat += "Last timestamp: {0} [{1}]".format(self.unixtime[len(self.unixtime)-1], len(self.unixtime) - 1) + "\n"
+		self.str_stat += "Total Number of Items: {}".format(len(self.unixtime))  + "\n"
+		self.str_stat += "Number of Time slices: {}.".format(timeslices) + "\n"
+		self.str_stat += "Per Time slice: {} seconds.".format(timewindow) + "\n"
+		
+		print self.str_stat
+		
 		iter = 1
 		for x in range(timeslices):
-			print "---------------------------".format()
+			print "--------------------------------------------------".format()
 			print "Timeslice #{0}".format(iter),
-			basetime = self.get_slice_timewindow(self.basetime)
+			basetime = self.get_slice_timewindow(self.basetime, timewindow)
 			uppertime = basetime + timewindow
 			baseindex = self.locate_index(basetime)		
 			upperindex = self.locate_index(uppertime) - 1
@@ -184,42 +161,56 @@ class parse_ezlog(object):
 			# do some processing
 			# put your statistics function here
 			self.count_oncampus_occurences(self.filtered_items[baseindex:upperindex])
-			self.ranking(self.filtered_items, baseindex, upperindex)
+			self.ranking(baseindex, upperindex)
 
 			# checks if timeslice is the last one
 			# ends loop if timeslice reaches EOL
 			if x == timeslices-1: break
 			else: self.basetime = uppertime
 			iter += 1
-
+		
 if __name__ == '__main__':
     	parser = argparse.ArgumentParser()
 	parser.add_argument(
         '--in_file','-f',
-	type = str,
+		type = str,
         help = 'Use custom input file',
-        default = 'data-small'
+        default = 'data-small.log'
     )
 	parser.add_argument(
         '--out_file','-o',
-	type = str,
+		type = str,
         help = 'Use custom output file',
         default = 'parsed-out.csv'
     )
 	parser.add_argument(
+        '--stat_file','-s',
+		type = str,
+        help = 'Use custom statistics file',
+        default = 'stat.csv'
+    )
+	parser.add_argument(
         '--keyword','-k',
-	type = str,
+		type = str,
         help = 'Specify keyword',
         default = '.pdf'
     )
 	parser.add_argument(
-	'--verbose','-v',
-	action = 'store_true',
+        '--timewindow','-tw',
+		type = int,
+        help = 'Specify timewindow',
+        default = 14400
+    )
+	parser.add_argument(
+		'--verbose','-v',
+		action = 'store_true',
         help = 'Print verbose conversions',
     )	
 	args = parser.parse_args()	
 	main(
 		in_file = args.in_file,
 		out_file = args.out_file,
-		keyword = args.keyword
-	)
+		stat_file = args.stat_file,
+		keyword = args.keyword,
+		timewindow = args.timewindow
+)
