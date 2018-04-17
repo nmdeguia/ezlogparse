@@ -24,6 +24,8 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	data.generate_statistics(timewindow)
 	data.statdump(stat_file, data.str_stat)
 	
+	#for i in data.request_rank: print i
+
 class parse_ezlog(object):
 	
 	def __init__(self, in_file):
@@ -43,6 +45,7 @@ class parse_ezlog(object):
 		self.request = list()	#6
 		self.bytes = list()		#7
 		
+		self.request_rank = list()
 		self.str_stat = list()
 		self.unique = list()
 		self.unixtime = list()
@@ -91,26 +94,33 @@ class parse_ezlog(object):
 		count = 0
 		print "Count of duplicate URLs:"
 		self.request_count = Counter(self.request[a:b+1])
+		#self.request_rank = list(self.request_count.most_common())
 		for i in self.request_count.most_common():
 			count += 1
 			print "Content ID: {0}, Number of requests: {1}".format(count, i[1])
-
+		
 	def unique_content(self, a, b):
 		count = 0
-		#self.unique = Counter(set(zip(self.name[a:b+1], self.request[a:b+1])))
-		self.unique = set(self.request[a:b+1])
+		#self.unique = Counter(set(zip(self.ip[a:b+1], self.request[a:b+1])))
+		self.unique = set(zip(self.ip[a:b+1], self.request[a:b+1]))
+		#self.unique = set(self.request[a:b+1])
+		print "Unique URLs:"
 		for i in self.unique:
 			count += 1
-			#print "Unique Name: {}, Unique URL: {}".format(i[0], i[1])
-			#print "Unique URL: {}".format(i)
+			print "IP: {}, URL: {}".format(i[0], i[1])
+			#print "URL: {}".format(i)
+			#self.unique_list = list(self.unique)
+			#self.unique_index(a, b)
 		print "Number of Unique URL: {}".format(count)
-		#self.unique_index(a, b)
+		
 		
 	def unique_index(self, a, b):
 		pass
+		#for i in range(len(self.unixtime[a:b+1])):
 		#count = 0
 		#for i in range(len(self.request[a:b+1])):
-			#count += 1
+		#	if str(self.unique_list[a:b+1]) in self.request[a:b+1]:
+		#		count += 1	
 		#print count
 	
 	def count_oncampus_occurences(self, data_in):
