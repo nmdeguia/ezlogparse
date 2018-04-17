@@ -196,25 +196,25 @@ if __name__ == '__main__':
     	parser = argparse.ArgumentParser()
 	parser.add_argument(
         '--in_file','-f',
-		type = str,
+	type = str,
         help = 'Use custom input file',
         default = 'data-small'
     )
 	parser.add_argument(
         '--out_file','-o',
-		type = str,
+	type = str,
         help = 'Use custom output file',
         default = 'parsed-out.csv'
     )
 	parser.add_argument(
         '--keyword','-k',
-		type = str,
+	type = str,
         help = 'Specify keyword',
         default = '.pdf'
     )
 	parser.add_argument(
-		'--verbose','-v',
-		action = 'store_true',
+	'--verbose','-v',
+	action = 'store_true',
         help = 'Print verbose conversions',
     )	
 	args = parser.parse_args()	
