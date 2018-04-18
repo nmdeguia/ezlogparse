@@ -114,10 +114,10 @@ class parse_ezlog(object):
 		#print 'Unique URLs:'
 		for i in self.unique:
 			count += 1
-			#string = 'IP{}: {}\nURL{}: {}'.format(count, i[0], count, i[1])
-			#append_string_to_out(string + '\n', stat_file)
+			string = 'IP{}: {}\nURL{}: {}'.format(count, i[0], count, i[1])
+			append_string_to_out(string + '\n', stat_file)
 			
-		string = 'Number of unique URLs: {}\n'.format(count)
+		string = 'Number of unique URLs: {}'.format(count)
 		if (verbose): print string
 		append_string_to_out(string + '\n', stat_file)
 
@@ -169,19 +169,19 @@ def generate_statistics(items, timewindow):
 	print 'Generating Statistics'
 	string = 'Initial timestamp: {0} [{1}]'.format(items.unixtime[0], 0) + '\n'
 	string += 'Final timestamp: {0} [{1}]'.format(items.unixtime[len(items.unixtime)-1],len(items.unixtime)-1)+'\n'
-	string += 'Total number of items: {}'.format(len(items.unixtime))  + '\n'
-	string += 'Number of time slices: {}.'.format(timeslices) + '\n'
-	string += 'Per time slice: {} seconds.\n'.format(timewindow) + '\n'
+	string += 'Total number of items: {0}'.format(len(items.unixtime))  + '\n'
+	string += 'Number of time slices: {0}.'.format(timeslices) + '\n'
+	string += 'Per time slice: {0} seconds.'.format(timewindow)
 	
 	print string
-	dump_string_to_out(string, stat_file)
+	dump_string_to_out(string + '\n', stat_file)
 
 	iter = 1
 	for x in range(timeslices):
 		if (verbose): print '--------------------------------------------------'.format()
 		if items.basetime is 0:
 			items.basetime = items.unixtime[0]
-		string = 'Timeslice no. {0} ({1} - {2})'.format(iter, items.basetime, items.basetime + timewindow) + '\n'
+		string = 'Timeslice no. {0} ({1} - {2})\n'.format(iter, items.basetime, items.basetime + timewindow)
 		
 		#basetime = items.get_slice_timewindow(items.basetime, timewindow)
 		uppertime = items.basetime + timewindow
@@ -195,7 +195,7 @@ def generate_statistics(items, timewindow):
 		# do some processing
 		# put your statistics function here
 		if (verbose): print string
-		append_string_to_out(string + '\n', stat_file)
+		append_string_to_out('\n' + string + '\n', stat_file)
 
 		count_oncampus_occurences(items.filtered_items[baseindex:upperindex])
 		items.ranking(baseindex, upperindex)
@@ -274,7 +274,7 @@ if __name__ == '__main__':
 		help = 'Print verbose conversions',
 	)
 	parser.add_argument(
-		'--genstat','-gst',
+		'--genstat','-gs',
 		action = 'store_true',
 		help = 'Generate statistical report',
 	)	
