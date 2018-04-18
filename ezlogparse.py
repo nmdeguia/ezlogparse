@@ -72,12 +72,9 @@ class parse_ezlog(object):
 		self.request = list()	#6
 		self.bytes = list()		#7
 		
-		self.request_rank = list()
-		self.str_stat = ""
-		self.str_stat1 = ""
-		self.str_stat2 = ""
-		self.str_stat3 = ""
+		#self.request_rank = list()
 		self.unique = list()
+		self.duplicate = list()
 		self.unixtime = list()
 		self.basetime = 0
 		
@@ -96,33 +93,36 @@ class parse_ezlog(object):
 			self.tzone.append(self.filtered_items[i][4].strip(']'))
 			self.request.append(self.filtered_items[i][6])
 			self.bytes.append(self.filtered_items[i][9])
-		
-	def ranking(self, a, b):
+			
+	def unique_content(self, a, b):
 		count = 0
-		if (verbose): print 'Count of duplicate URLs:'
-		self.request_count = Counter((self.request[a:b+1]))
-		#self.request_rank = list(self.request_count.most_common())
-		for i in self.request_count.most_common():
-			count += 1
-			string = 'Content ID: {0:03d}, Number of requests: {1}'.format(count, i[1])
+		dup = 0
+		self.unique = set(zip(self.ip[a:b+1], self.request[a:b+1]))
+		self.duplicate = zip(*self.unique)
+		
+		if len(self.duplicate) > 0:
+			self.duplicate = self.duplicate.pop(1)
+			self.duplicate = Counter(self.duplicate)
+
+			for i in self.duplicate.most_common():
+				dup += 1
+				string = 'Content ID: {0:03d}, Number of requests: {1}'.format(dup, i[1])
+				if (verbose): print string
+				append_string_to_out(string + '\n', stat_file)
+			string = 'Number of Unique URLs: {}'.format(len(set(self.duplicate)))
 			if (verbose): print string
 			append_string_to_out(string + '\n', stat_file)
 		
-	def unique_content(self, a, b):
-		count = 0
-		#self.unique = Counter(set(zip(self.ip[a:b+1], self.request[a:b+1])))
 		self.unique = set(zip(self.ip[a:b+1], self.request[a:b+1]))
-		#self.unique = set(self.request[a:b+1])
-		#print 'Unique URLs:'
 		for i in self.unique:
 			count += 1
 			string = 'IP{}: {}\nURL{}: {}'.format(count, i[0], count, i[1])
 			append_string_to_out(string + '\n', stat_file)
 			
-		string = 'Number of unique URLs: {}'.format(count)
+		string = 'Number of Unique IP: {}'.format(count)
 		if (verbose): print string
 		append_string_to_out(string + '\n', stat_file)
-
+		
 	def dt_to_unix_timestamp(self):
 		for i in range(len(self.date)):
 			dt = re.split(r'[[/:]+', self.filtered_items[i][3])
@@ -186,7 +186,7 @@ def generate_statistics(items, timewindow):
 		
 	print string
 	dump_string_to_out(string + '\n', stat_file)
-	items.remove_chunk_requests()
+	#items.remove_chunk_requests()
 
 	iter = 1
 	for x in range(timeslices):
@@ -210,7 +210,6 @@ def generate_statistics(items, timewindow):
 		append_string_to_out('\n' + string + '\n', stat_file)
 
 		count_oncampus_occurences(items.filtered_items[baseindex:upperindex])
-		items.ranking(baseindex, upperindex)
 		items.unique_content(baseindex, upperindex)
 				
 		# checks if timeslice is the last one
