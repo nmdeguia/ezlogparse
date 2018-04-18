@@ -22,8 +22,7 @@ import re
 import argparse
 
 debug = 'this string indicates success'
-# just a debug string
-# print whenever needed
+# just a debug string, print whenever needed
 
 def main(in_file, out_file, stat_file, keyword, timewindow):
 	start_time = time.time() 
