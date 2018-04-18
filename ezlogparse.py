@@ -3,6 +3,7 @@
 from sys import argv
 from collections import Counter
 from bisect import bisect_left
+import ipaddress
 import time
 import datetime
 import re
@@ -62,6 +63,7 @@ class parse_ezlog(object):
 		
 		#used in search function				
 		self.filtered_items = list()	
+		self.unique_items = list()
 		
 		self.ip = list()		#0
 		self.name = list()		#2
@@ -98,7 +100,7 @@ class parse_ezlog(object):
 	def ranking(self, a, b):
 		count = 0
 		if (verbose): print 'Count of duplicate URLs:'
-		self.request_count = Counter(self.request[a:b+1])
+		self.request_count = Counter((self.request[a:b+1]))
 		#self.request_rank = list(self.request_count.most_common())
 		for i in self.request_count.most_common():
 			count += 1
@@ -147,11 +149,20 @@ class parse_ezlog(object):
 		print '({} - {})'.format(new_basetime, new_basetime + timewindow)
 		return new_basetime
 
+	def remove_chunk_requests(self):
+		for x in range(len(self.filtered_items)):
+			if int(self.filtered_items[x][9]) > 1000000:
+				#print self.filtered_items[x]
+				self.unique_items.append(self.filtered_items[x])
+		print 'Total unique items (no duplicates): {0}'.format(len(self.unique_items))
+
 def count_oncampus_occurences(data_in):
 	on_campus_count = 0
 	off_campus_count = 0   		
+	unicode_ip_net = unicode(oncampaddr, 'utf-8')
 	for i in range(len(data_in)):
-		if data_in[i][0].startswith(oncampaddr):
+		unicode_ip_request = unicode(data_in[i][0], 'utf-8')
+		if ipaddress.ip_address(unicode_ip_request) in ipaddress.ip_network(unicode_ip_net):
 			on_campus_count += 1
 		else:
 			off_campus_count += 1
@@ -172,9 +183,10 @@ def generate_statistics(items, timewindow):
 	string += 'Total number of items: {0}'.format(len(items.unixtime))  + '\n'
 	string += 'Number of time slices: {0}.'.format(timeslices) + '\n'
 	string += 'Per time slice: {0} seconds.'.format(timewindow)
-	
+		
 	print string
 	dump_string_to_out(string + '\n', stat_file)
+	items.remove_chunk_requests()
 
 	iter = 1
 	for x in range(timeslices):
@@ -266,7 +278,7 @@ if __name__ == '__main__':
 		'--oncampaddr','-ipc',
 		type = str,
 		help = 'Specify campus ip address',
-		default = '10.?'
+		default = '10.0.0.0/8'
 	)	
 	parser.add_argument(
 		'--verbose','-v',
@@ -287,4 +299,4 @@ if __name__ == '__main__':
 		stat_file = args.stat_file,
 		keyword = args.keyword,
 		timewindow = args.timewindow
-)
+	)
