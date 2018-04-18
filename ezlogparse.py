@@ -21,7 +21,7 @@ import datetime
 import re
 import argparse
 
-debug = 'nice, that line is correct'
+debug = 'this string indicates success'
 # just a debug string
 # print whenever needed
 
