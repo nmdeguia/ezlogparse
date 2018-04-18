@@ -9,15 +9,13 @@ import datetime
 import re
 import argparse
 
-ezlogparse_version = '2.0'
 debug = 'nice, that line is correct'
 # just a debug string
 # print whenever needed
 
 def main(in_file, out_file, stat_file, keyword, timewindow):
-	
 	start_time = time.time() 
-	print 'EZlogparse v{0}'.format(ezlogparse_version)
+	print 'Starting EZlogparse...'
 	print '--------------------------------------------------'	
 	print 'Parsing {0}: Keyword "{1}"'.format(in_file, keyword)
 
@@ -27,7 +25,7 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	data.dt_to_unix_timestamp()
 
 	csv_string = dumpstring(data)
-	dump_string_to_out(csv_string, out_file)
+	dump_string_to_out(csv_string, out_file, 'w')
 	print 'Parsing done!'	
 	print 'Data file: {0}'.format(out_file)
 	print '--------------------------------------------------'
@@ -52,7 +50,6 @@ def elapsed_time(sec):
     else: return str(sec/(60*60)) + ' hrs'      
 	
 class parse_ezlog(object):
-	
 	def __init__(self, in_file):
 		file = open(in_file, 'r')
 		raw = list(in_file)
@@ -65,12 +62,12 @@ class parse_ezlog(object):
 		self.filtered_items = list()	
 		self.unique_items = list()
 		
-		self.ip = list()		#0
-		self.name = list()		#2
-		self.date = list()		#3[
-		self.tzone = list()		#4]
-		self.request = list()	#6
-		self.bytes = list()		#7
+		self.ip = list()			#0
+		self.name = list()			#2
+		self.date = list()			#3[
+		self.tzone = list()			#4]
+		self.request = list()		#6
+		self.bytes = list()			#7
 		
 		#self.request_rank = list()
 		self.unique = list()
@@ -99,30 +96,30 @@ class parse_ezlog(object):
 		dup = 0
 		self.unique = set(zip(self.ip[a:b+1], self.request[a:b+1]))
 		self.duplicate = zip(*self.unique)
-		
+
 		if len(self.duplicate) > 0:
 			self.duplicate = self.duplicate.pop(1)
 			self.duplicate = Counter(self.duplicate)
 
 			for i in self.duplicate.most_common():
 				dup += 1
-				string = 'Content ID: {0:03d}, Number of requests: {1}'.format(dup, i[1])
+				string = 'Content ID: {0:03d}, Number of requests: {1}'.format(count, i[1])
 				if (verbose): print string
-				append_string_to_out(string + '\n', stat_file)
+				dump_string_to_out(string+'\n', stat_file, 'a')
 			string = 'Number of Unique URLs: {}'.format(len(set(self.duplicate)))
 			if (verbose): print string
-			append_string_to_out(string + '\n', stat_file)
-		
+			dump_string_to_out(string+'\n', stat_file, 'a')
+
 		self.unique = set(zip(self.ip[a:b+1], self.request[a:b+1]))
 		for i in self.unique:
 			count += 1
 			string = 'IP{}: {}\nURL{}: {}'.format(count, i[0], count, i[1])
-			append_string_to_out(string + '\n', stat_file)
-			
+			dump_string_to_out(string+'\n', stat_file, 'a')
+
 		string = 'Number of Unique IP: {}'.format(count)
 		if (verbose): print string
-		append_string_to_out(string + '\n', stat_file)
-		
+		dump_string_to_out(string+'\n', stat_file, 'a')
+
 	def dt_to_unix_timestamp(self):
 		for i in range(len(self.date)):
 			dt = re.split(r'[[/:]+', self.filtered_items[i][3])
@@ -137,24 +134,17 @@ class parse_ezlog(object):
 		#print 'Temp date is = {}'.format(temp)
 		#print 'Base time is: {}'.format(self.unixtime[0])
 		return self.unixtime
-
-	def locate_index(self, timelookup):	# locates the nearest number to the left of timelookup    	
-		index = bisect_left(self.unixtime,timelookup)	# returns index
+	
+	# locates the nearest number to the left of timelookup 
+	def locate_index(self, timelookup):	   	
+		index = bisect_left(self.unixtime,timelookup) # returns index
 		return int(index)
 		
 	def get_slice_timewindow(self, time, timewindow):
-		if time is 0:
-			new_basetime = self.unixtime[0]
+		if time is 0: new_basetime = self.unixtime[0]
 		else: new_basetime = time
 		print '({} - {})'.format(new_basetime, new_basetime + timewindow)
 		return new_basetime
-
-	def remove_chunk_requests(self):
-		for x in range(len(self.filtered_items)):
-			if int(self.filtered_items[x][9]) > 1000000:
-				#print self.filtered_items[x]
-				self.unique_items.append(self.filtered_items[x])
-		print 'Total unique items (no duplicates): {0}'.format(len(self.unique_items))
 
 def count_oncampus_occurences(data_in):
 	on_campus_count = 0
@@ -167,10 +157,9 @@ def count_oncampus_occurences(data_in):
 		else:
 			off_campus_count += 1
 	string = 'Number of on-campus accesses: {0}\n'.format(on_campus_count)
-	string += 'Number of off-campus accesses: {0}'.format(off_campus_count + 1)
+	string += 'Number of off-campus accesses: {0}'.format(off_campus_count+1)
 	if (verbose): print string
-	append_string_to_out(string + '\n', stat_file)
-
+	dump_string_to_out(string+'\n', stat_file, 'a')
 	
 def generate_statistics(items, timewindow):
 	finaltime = items.unixtime[len(items.unixtime)-1]
@@ -178,22 +167,21 @@ def generate_statistics(items, timewindow):
 	timeslices = (elapsedtime/timewindow)+1
 	
 	print 'Generating Statistics'
-	string = 'Initial timestamp: {0} [{1}]'.format(items.unixtime[0], 0) + '\n'
-	string += 'Final timestamp: {0} [{1}]'.format(items.unixtime[len(items.unixtime)-1],len(items.unixtime)-1)+'\n'
-	string += 'Total number of items: {0}'.format(len(items.unixtime))  + '\n'
-	string += 'Number of time slices: {0}.'.format(timeslices) + '\n'
+	string = 'Initial timestamp: {0} [{1}]\n'.format(items.unixtime[0], 0)
+	string += 'Final timestamp: {0} [{1}]\n'.format(items.unixtime[len(items.unixtime)-1], len(items.unixtime)-1)
+	string += 'Total number of items: {0}\n'.format(len(items.unixtime))
+	string += 'Number of time slices: {0}\n'.format(timeslices)
 	string += 'Per time slice: {0} seconds.'.format(timewindow)
 		
 	print string
-	dump_string_to_out(string + '\n', stat_file)
-	#items.remove_chunk_requests()
+	dump_string_to_out(string + '\n', stat_file, 'w')
 
 	iter = 1
 	for x in range(timeslices):
 		if (verbose): print '--------------------------------------------------'.format()
 		if items.basetime is 0:
 			items.basetime = items.unixtime[0]
-		string = 'Timeslice no. {0} ({1} - {2})\n'.format(iter, items.basetime, items.basetime + timewindow)
+		string = 'Timeslice no. {0} ({1} - {2})\n'.format(iter, items.basetime, items.basetime+timewindow)
 		
 		#basetime = items.get_slice_timewindow(items.basetime, timewindow)
 		uppertime = items.basetime + timewindow
@@ -202,12 +190,12 @@ def generate_statistics(items, timewindow):
 		upperindexvalue = items.unixtime[upperindex]
 		baseindexvalue = items.unixtime[baseindex]
 		string += 'Base: {0} [{1}], Upper: {2} [{3}]\n'.format(baseindexvalue, baseindex, upperindexvalue, upperindex)
-		string += 'Number of items in sublist: {0}'.format(len(items.unixtime[baseindex:upperindex]) + 1)
+		string += 'Number of items in sublist: {0}'.format(len(items.unixtime[baseindex:upperindex])+1)
 		
 		# do some processing
 		# put your statistics function here
 		if (verbose): print string
-		append_string_to_out('\n' + string + '\n', stat_file)
+		dump_string_to_out('\n'+string+'\n', stat_file, 'a')
 
 		count_oncampus_occurences(items.filtered_items[baseindex:upperindex])
 		items.unique_content(baseindex, upperindex)
@@ -231,71 +219,60 @@ def dumpstring(items):
 		items.parsed = csv_string
 	return items.parsed
 
-def dump_string_to_out(string, filename):
-	file = open(filename, 'w')
+def dump_string_to_out(string, filename, mode):
+	file = open(filename, mode)
 	file.write(string)
 	file.close()
-
-def append_string_to_out(string, filename):
-	file = open(filename, 'a')
- 	file.write(string)
- 	file.close()
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument(
-		'--in_file','-f',
-		type = str,
-		help = 'Use custom input file',
-		default = 'data.log'
+		'--in_file','-f',type = str,
+		help = 'Use custom input file',default = 'data.log'
 	)
 	parser.add_argument(
-		'--out_file','-o',
-		type = str,
-		help = 'Use custom output file',
-		default = 'parsed.csv'
+		'--out_file','-o',type = str,
+		help = 'Use custom output file',default = 'parsed.csv'
 	)
 	parser.add_argument(
-		'--stat_file','-s',
-		type = str,
-		help = 'Use custom statistics file',
-		default = 'stat.csv'
+		'--stat_file','-s',type = str,
+		help = 'Use custom statistics file',default = 'stat.csv'
 	)
 	parser.add_argument(
-		'--keyword','-k',
-		type = str,
-		help = 'Specify keyword',
-		default = '.pdf'
+		'--keyword','-k',type = str,
+		help = 'Specify keyword',default = '.pdf'
 	)
 	parser.add_argument(
-		'--timewindow','-t',
-		type = int,
-		help = 'Specify timewindow',
-		default = 14400
+		'--timewindow','-t',type = int,
+		help = 'Specify timewindow',default = 14400
 	)
 	parser.add_argument(
-		'--oncampaddr','-ipc',
-		type = str,
-		help = 'Specify campus ip address',
-		default = '10.0.0.0/8'
+		'--oncampaddr','-ipc',type = str,
+		help = 'Specify campus ip address',default = '10.0.0.0/8'
 	)	
 	parser.add_argument(
-		'--verbose','-v',
-		action = 'store_true',
+		'--verbose','-v',action = 'store_true',
 		help = 'Print verbose conversions',
 	)
 	parser.add_argument(
-		'--genstat','-gs',
-		action = 'store_true',
+		'--genstat','-gs',action = 'store_true',
 		help = 'Generate statistical report',
-	)	
+	)
+	parser.add_argument(
+		'--version',action = 'store_true',
+		help = 'Prints version'
+	)
 	args = parser.parse_args()	
 	# passes arguments to global namespace:
 	globals().update(args.__dict__)
-	main(
-		in_file = args.in_file,
-		out_file = args.out_file,
-		stat_file = args.stat_file,
-		keyword = args.keyword,
-		timewindow = args.timewindow
-	)
+
+	ver = '2.0'
+	if (version): print 'EZlogparse v{0}'.format(ver)
+	else:
+		main(
+			in_file = args.in_file,
+			out_file = args.out_file,
+			stat_file = args.stat_file,
+			keyword = args.keyword,
+			timewindow = args.timewindow
+		)
