@@ -1,35 +1,49 @@
-# vim: set tabstop=4:softtabstop=4:shiftwidth=4:noexpandtab #
+# vim: set tabstop=4:softtabstop=4:shiftwidth=4:noexpandtab
 #
 # Authors:
-#	Bandiola, Al Tristan
-#	de Guia, Norman Roy
+#		Bandiola, Al Tristan
+#		de Guia, Norman Roy
 #
 # This script is made specifically for the analysis of ezproxy logs,
 # which would later be used for the completion of our capstone project.
 #
-# Usage:
-#	$ python ezlogparse.py --argument value
+# Usage: $ python ezlogparse.py --argument value
 #
-# More details in github.com/nmdeguia/ezlogparse
+# More details in github.com/nmdeguia/ezlogparse/README.md
 
 from sys import argv
 from collections import Counter
 from bisect import bisect_left
 import ipaddress
-import time
-import datetime
-import re
-import argparse
+import time, datetime
+import re, argparse
+import os, glob
 
-debug = 'this string indicates success'
-# just a debug string, print whenever needed
+ver = '2.0'
+debug = 'nice, that line is correct'
+# just a debug string
+# print whenever needed
 
 def main(in_file, out_file, stat_file, keyword, timewindow):
 	start_time = time.time() 
 	print 'Starting EZlogparse...'
-	print '--------------------------------------------------'	
-	print 'Parsing {0}: Keyword "{1}"'.format(in_file, keyword)
+	print '=================================================='
 
+	# check if user wants to analyze a whole directory
+	# dir == None == unspecified, therefore ezlogparse
+	# will execute with the default single log file in
+	# the current working directory of the script
+	if (dir == None): execute_main(in_file)
+	else:
+		for filename in glob.glob(os.path.join(dir,ext)):
+			in_file = filename
+			execute_main(in_file)
+	
+	total_time = (time.time() - start_time)/100.0
+	print 'Total run time: {0}'.format(elapsed_time(time.time() - start_time))
+
+def execute_main(in_file):
+	print 'Parsing {0}: Keyword "{1}"'.format(in_file, keyword)    	
 	data = parse_ezlog(in_file)
 	data.search(keyword)
 	data.extract()
@@ -47,9 +61,9 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 		print '--------------------------------------------------'
 		print 'Statistical report complete'
 		print 'Stat file: {0}'.format(stat_file)
-
-	total_time = (time.time() - start_time)/100.0
-	print 'Total run time: {0}'.format(elapsed_time(time.time() - start_time))
+	
+	if (dir == None): pass
+	else: print '=================================================='
 
 def elapsed_time(sec):
     # this function returns string converted
@@ -179,7 +193,8 @@ def generate_statistics(items, timewindow):
 	
 	print 'Generating Statistics'
 	string = 'Initial timestamp: {0} [{1}]\n'.format(items.unixtime[0], 0)
-	string += 'Final timestamp: {0} [{1}]\n'.format(items.unixtime[len(items.unixtime)-1], len(items.unixtime)-1)
+	string += 'Final timestamp: {0} [{1}]\n'.format(
+		items.unixtime[len(items.unixtime)-1], len(items.unixtime)-1)
 	string += 'Total number of items: {0}\n'.format(len(items.unixtime))
 	string += 'Number of time slices: {0}\n'.format(timeslices)
 	string += 'Per time slice: {0} seconds.'.format(timewindow)
@@ -189,10 +204,11 @@ def generate_statistics(items, timewindow):
 
 	iter = 1
 	for x in range(timeslices):
-		if (verbose): print '--------------------------------------------------'.format()
+		if (verbose): print '--------------------------------------------------'
 		if items.basetime is 0:
 			items.basetime = items.unixtime[0]
-		string = 'Timeslice no. {0} ({1} - {2})\n'.format(iter, items.basetime, items.basetime+timewindow)
+		string = 'Timeslice no. {0} ({1} - {2})\n'.format(
+			iter, items.basetime, items.basetime+timewindow)
 		
 		#basetime = items.get_slice_timewindow(items.basetime, timewindow)
 		uppertime = items.basetime + timewindow
@@ -200,8 +216,10 @@ def generate_statistics(items, timewindow):
 		upperindex = items.locate_index(uppertime) - 1
 		upperindexvalue = items.unixtime[upperindex]
 		baseindexvalue = items.unixtime[baseindex]
-		string += 'Base: {0} [{1}], Upper: {2} [{3}]\n'.format(baseindexvalue, baseindex, upperindexvalue, upperindex)
-		string += 'Number of items in sublist: {0}'.format(len(items.unixtime[baseindex:upperindex])+1)
+		string += 'Base: {0} [{1}], Upper: {2} [{3}]\n'.format(
+			baseindexvalue, baseindex, upperindexvalue, upperindex)
+		string += 'Number of items in sublist: {0}'.format(
+			len(items.unixtime[baseindex:upperindex])+1)
 		
 		# do some processing
 		# put your statistics function here
@@ -237,9 +255,26 @@ def dump_string_to_out(string, filename, mode):
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument(
+	group = parser.add_mutually_exclusive_group()
+	group.add_argument(
+		'--dir','-d',type = str,
+		help = 'Directory of logs to parse',default = None
+		# directory is the current working directory
+		# if this is unspecified, then the parser
+		# will only analyze one default/specified log
+	)
+	group.add_argument(
 		'--in_file','-f',type = str,
 		help = 'Use custom input file',default = 'data.log'
+	)
+	parser.add_argument(
+		'--ext','-e',type = str,
+		help = 'File extension of logs',default = '*.log'
+		# need to specify * if we want to run the script
+		# on all the files with that file extension.
+		# Note that if you want to run multiple files,
+		# the script only works by opening a separate directory
+		# from the current working directory of the script
 	)
 	parser.add_argument(
 		'--out_file','-o',type = str,
@@ -263,11 +298,11 @@ if __name__ == '__main__':
 	)	
 	parser.add_argument(
 		'--verbose','-v',action = 'store_true',
-		help = 'Print verbose conversions',
+		help = 'Print verbose conversions'
 	)
 	parser.add_argument(
 		'--genstat','-gs',action = 'store_true',
-		help = 'Generate statistical report',
+		help = 'Generate statistical report'
 	)
 	parser.add_argument(
 		'--version',action = 'store_true',
@@ -276,8 +311,6 @@ if __name__ == '__main__':
 	args = parser.parse_args()	
 	# passes arguments to global namespace:
 	globals().update(args.__dict__)
-
-	ver = '2.0'
 	if (version): print 'EZlogparse v{0}'.format(ver)
 	else:
 		main(
