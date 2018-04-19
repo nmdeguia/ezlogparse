@@ -50,7 +50,8 @@ def execute_main(in_file):
 	data.dt_to_unix_timestamp()
 
 	csv_string = dumpstring(data)
-	dump_string_to_out(csv_string, out_file, 'w')
+	if (dir == None): dump_string_to_out(csv_string, out_file, 'w')
+	else: dump_string_to_out(csv_string, out_file, 'a')
 	print 'Parsing done!'	
 	print 'Data file: {0}'.format(out_file)
 	print '--------------------------------------------------'
@@ -69,7 +70,7 @@ def elapsed_time(sec):
     # this function returns string converted
     # from the time elapsed, units are adjusted
     # for more readable output
-    if sec < 1: return str(sec*1000) + ' usecs'
+    if sec < 1: return str(sec*1000) + ' msecs'
     elif sec < 60: return str(sec) + ' secs'
     elif sec < (60*60): return str(sec/60) + ' mins'
     else: return str(sec/(60*60)) + ' hrs'      
@@ -128,7 +129,7 @@ class parse_ezlog(object):
 
 			for i in self.duplicate.most_common():
 				dup += 1
-				string = 'Content ID: {0:03d}, Number of requests: {1}'.format(count, i[1])
+				string = 'Content ID: {0:03d}, Number of requests: {1}'.format(dup, i[1])
 				if (verbose): print string
 				dump_string_to_out(string+'\n', stat_file, 'a')
 			string = 'Number of Unique URLs: {}'.format(len(set(self.duplicate)))
@@ -200,7 +201,8 @@ def generate_statistics(items, timewindow):
 	string += 'Per time slice: {0} seconds.'.format(timewindow)
 		
 	print string
-	dump_string_to_out(string + '\n', stat_file, 'w')
+	if (dir == None): dump_string_to_out(string + '\n', stat_file, 'w')
+	else: dump_string_to_out(string + '\n', stat_file, 'a')
 
 	iter = 1
 	for x in range(timeslices):
