@@ -6,10 +6,10 @@ Parser for data logs saved by ezproxy using Python.
 
 | Arguments | Description | Default Values | Type |
 | --- | --- | --- | --- |
-| --version | Prints version | OFF | None
-| --verbose, -v | Verbose output, prints statistics | OFF | None
-| --genstat, -gs | Generate statistical report | OFF | None
-| --dir, -d | Directory of log files | OFF | str
+| --version | Prints version | False | None
+| --verbose, -v | Verbose output, prints statistics | False | None
+| --genstat, -gs | Generate statistical report | False | None
+| --dir, -d | Directory of log files | pwd* | str
 | --ext, -e | Extension of files | *.log | str
 | --in_file, -f | Use custom input log file | data.log | string
 | --out_file, -o | Specify output file | parsed.csv | string
@@ -17,6 +17,8 @@ Parser for data logs saved by ezproxy using Python.
 | --keyword, -k | Lookup filtering keyword | '.pdf' | string
 | --timewindow, -t | Specify timewindow | 14400 seconds | integer
 | --oncampaddr, -ipc | Specify campus ip address | 10.X.X.X | string
+
+*present working directory
 
 Notes:
 
