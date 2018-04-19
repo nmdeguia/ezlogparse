@@ -9,6 +9,8 @@ Parser for data logs saved by ezproxy using Python.
 | --version | Prints version | OFF | None
 | --verbose, -v | Verbose output, prints statistics | OFF | None
 | --genstat, -gs | Generate statistical report | OFF | None
+| --dir, -d | Directory of log files | OFF | str
+| --ext, -e | Extension of files | *.log | str
 | --in_file, -f | Use custom input log file | data.log | string
 | --out_file, -o | Specify output file | parsed.csv | string
 | --stat_file, -s | Specify output stat file | stat.csv | string
@@ -16,6 +18,11 @@ Parser for data logs saved by ezproxy using Python.
 | --timewindow, -t | Specify timewindow | 14400 seconds | integer
 | --oncampaddr, -ipc | Specify campus ip address | 10.X.X.X | string
 
+Notes:
+
+- Directory is the current working directory. If this is unspecified, then the parser will only analyze one default/specified log.
+- Need to specify '*' if we want to run the script on all the files with that file extension. Note that if you want to run multiple files, the script only works by opening a separate directory from the current working directory of the script.
+    
 Sample usage: 
 
 > $ python ezlogparse.py -v -f ezproxy.log -gst
