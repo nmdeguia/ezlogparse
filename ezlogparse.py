@@ -34,7 +34,7 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	# will execute with the default single log file in
 	# the current working directory of the script
 	flag = 0	
-	if (dir == None): execute_main(in_file)
+	if (dir == None): execute_main(in_file, flag)
 	else:
 		for filename in glob.glob(os.path.join(dir,ext)):
 			in_file = filename
