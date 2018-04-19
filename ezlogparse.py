@@ -51,7 +51,7 @@ def execute_main(in_file, flag):
 	data.dt_to_unix_timestamp()
 
 	csv_string = dumpstring(data)
-	if (dir == None): dump_string_to_out(csv_string, out_file, 'w')
+	if (flag == 0): dump_string_to_out(csv_string, out_file, 'w')
 	else: dump_string_to_out(csv_string, out_file, 'a')
 	print 'Parsing done!'	
 	print 'Data file: {0}'.format(out_file)
@@ -166,12 +166,6 @@ class parse_ezlog(object):
 	def locate_index(self, timelookup):	   	
 		index = bisect_left(self.unixtime,timelookup) # returns index
 		return int(index)
-		
-	def get_slice_timewindow(self, time, timewindow):
-		if time is 0: new_basetime = self.unixtime[0]
-		else: new_basetime = time
-		print '({} - {})'.format(new_basetime, new_basetime + timewindow)
-		return new_basetime
 
 def count_oncampus_occurences(data_in):
 	on_campus_count = 0
@@ -213,12 +207,16 @@ def generate_statistics(items, timewindow, flag):
 		string = 'Timeslice no. {0} ({1} - {2})\n'.format(
 			iter, items.basetime, items.basetime+timewindow)
 		
-		#basetime = items.get_slice_timewindow(items.basetime, timewindow)
 		uppertime = items.basetime + timewindow
+		if uppertime >= items.unixtime[-1]: uppertime = items.unixtime[-1]
 		baseindex = items.locate_index(items.basetime)		
-		upperindex = items.locate_index(uppertime) - 1
-		upperindexvalue = items.unixtime[upperindex]
+		upperindex = items.locate_index(uppertime)
 		baseindexvalue = items.unixtime[baseindex]
+		upperindexvalue = items.unixtime[upperindex]
+		if upperindex != baseindex:
+			upperindex = items.locate_index(uppertime) - 1
+			upperindexvalue = items.unixtime[upperindex]
+		
 		string += '{0} to {1}\n'.format(
 			datetime.datetime.fromtimestamp(
 				int(baseindexvalue)).strftime('%Y-%m-%d %H:%M:%S'),
@@ -328,4 +326,4 @@ if __name__ == '__main__':
 			stat_file = args.stat_file,
 			keyword = args.keyword,
 			timewindow = args.timewindow
-		)
+)
