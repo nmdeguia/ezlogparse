@@ -33,16 +33,17 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	# dir == None == unspecified, therefore ezlogparse
 	# will execute with the default single log file in
 	# the current working directory of the script
+	flag = 0	
 	if (dir == None): execute_main(in_file)
 	else:
 		for filename in glob.glob(os.path.join(dir,ext)):
 			in_file = filename
-			execute_main(in_file)
-	
+			execute_main(in_file, flag)
+			flag += 1
 	total_time = (time.time() - start_time)/100.0
 	print 'Total run time: {0}'.format(elapsed_time(time.time() - start_time))
 
-def execute_main(in_file):
+def execute_main(in_file, flag):
 	print 'Parsing {0}: Keyword "{1}"'.format(in_file, keyword)    	
 	data = parse_ezlog(in_file)
 	data.search(keyword)
@@ -57,7 +58,7 @@ def execute_main(in_file):
 	print '--------------------------------------------------'
 
 	if (genstat):
-		generate_statistics(data, timewindow)
+		generate_statistics(data, timewindow, flag)
 		#dump_string_to_out(data.str_stat, stat_file)
 		print '--------------------------------------------------'
 		print 'Statistical report complete'
@@ -187,7 +188,7 @@ def count_oncampus_occurences(data_in):
 	if (verbose): print string
 	dump_string_to_out(string+'\n', stat_file, 'a')
 	
-def generate_statistics(items, timewindow):
+def generate_statistics(items, timewindow, flag):
 	finaltime = items.unixtime[len(items.unixtime)-1]
 	elapsedtime = finaltime - items.unixtime[0]
 	timeslices = (elapsedtime/timewindow)+1
@@ -201,7 +202,7 @@ def generate_statistics(items, timewindow):
 	string += 'Per time slice: {0} seconds.'.format(timewindow)
 		
 	print string
-	if (dir == None): dump_string_to_out(string + '\n', stat_file, 'w')
+	if (flag == 0): dump_string_to_out(string + '\n', stat_file, 'w')
 	else: dump_string_to_out(string + '\n', stat_file, 'a')
 
 	iter = 1
@@ -218,6 +219,12 @@ def generate_statistics(items, timewindow):
 		upperindex = items.locate_index(uppertime) - 1
 		upperindexvalue = items.unixtime[upperindex]
 		baseindexvalue = items.unixtime[baseindex]
+		string += '{0} to {1}\n'.format(
+			datetime.datetime.fromtimestamp(
+				int(baseindexvalue)).strftime('%Y-%m-%d %H:%M:%S'),
+			datetime.datetime.fromtimestamp(
+				int(upperindexvalue)).strftime('%Y-%m-%d %H:%M:%S')
+			)
 		string += 'Base: {0} [{1}], Upper: {2} [{3}]\n'.format(
 			baseindexvalue, baseindex, upperindexvalue, upperindex)
 		string += 'Number of items in sublist: {0}'.format(
