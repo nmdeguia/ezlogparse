@@ -22,8 +22,6 @@ import os, glob
 
 ver = '2.0'
 dbg = '<=== debug string ===>'
-# just a debug string
-# print whenever needed
 
 def main(in_file, out_file, stat_file, keyword, timewindow):
 	start_time = time.time()
