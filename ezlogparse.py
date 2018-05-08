@@ -14,6 +14,7 @@
 from sys import argv
 from collections import Counter
 from bisect import bisect_left
+from orderedset import OrderedSet
 import ipaddress
 import time, datetime
 import re, argparse
@@ -121,7 +122,7 @@ class parse_ezlog(object):
 	def unique_content(self, a, b):
 		count = 0
 		dup = 0
-		self.unique = set(zip(self.ip[a:b+1], self.request[a:b+1]))
+		self.unique = OrderedSet(zip(self.ip[a:b+1], self.request[a:b+1]))
 		self.duplicate = list(zip(*self.unique))
 
 		if len(self.duplicate) > 0:
@@ -137,7 +138,7 @@ class parse_ezlog(object):
 			if (verbose): print(string)
 			dump_string_to_out(string+'\n', stat_file, 'a')
 
-		self.unique = set(zip(self.ip[a:b+1], self.request[a:b+1]))
+		self.unique = OrderedSet(zip(self.ip[a:b+1], self.request[a:b+1]))
 		for i in self.unique:
 			count += 1
 			string = 'IP{}: {}\nURL{}: {}'.format(count, i[0], count, i[1])
