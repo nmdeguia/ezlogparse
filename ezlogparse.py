@@ -21,7 +21,7 @@ import re, argparse
 import os, glob
 
 ver = '2.0'
-debug = 'nice, that line is correct'
+dbg = '<=== debug string ===>'
 # just a debug string
 # print whenever needed
 
@@ -41,7 +41,6 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 			in_file = filename
 			execute_main(in_file, flag)
 			flag += 1
-	total_time = (time.time() - start_time)/100.0
 	print('Total run time: {0}'.format(elapsed_time(time.time() - start_time)))
 
 def execute_main(in_file, flag):
@@ -50,7 +49,9 @@ def execute_main(in_file, flag):
 	data.search(keyword)
 	data.extract()
 	data.dt_to_unix_timestamp()
-
+	#data.finale()
+	#print (data.indices)
+	#print (len(data.indices))
 	csv_string = dumpstring(data)
 	if (flag == 0): dump_string_to_out(csv_string, out_file, 'w')
 	else: dump_string_to_out(csv_string, out_file, 'a')
@@ -68,6 +69,10 @@ def execute_main(in_file, flag):
 	if (dir == None): pass
 	else: print('==================================================')
 
+	print (data.indices[-1])
+	print (len(data.indices))
+	print (type(data.unique_items))
+
 def elapsed_time(sec):
     # this function returns string converted
     # from the time elapsed, units are adjusted
@@ -80,7 +85,6 @@ def elapsed_time(sec):
 class parse_ezlog(object):
 	def __init__(self, in_file):
 		file = open(in_file, 'r')
-		raw = list(in_file)
 		file.close()
 
 		with open(in_file, 'r') as f:
@@ -99,9 +103,11 @@ class parse_ezlog(object):
 
 		#self.request_rank = list()
 		self.unique = list()
+		self.unique_items = list()
 		self.duplicate = list()
 		self.unixtime = list()
 		self.basetime = 0
+		self.indices = list()
 
 	def search(self, keyword):
 		for i in range(len(self.str_split)):
@@ -131,7 +137,7 @@ class parse_ezlog(object):
 
 			for i in self.duplicate.most_common():
 				dup += 1
-				string = 'Content ID: {0:03d}, Number of requests: {1}'.format(dup, i[1])
+				string = 'CID: {0:03d}, No. of requests: {1}'.format(dup, i[1])
 				if (verbose): print(string)
 				dump_string_to_out(string+'\n', stat_file, 'a')
 			string = 'Number of Unique URLs: {}'.format(len(set(self.duplicate)))
@@ -147,6 +153,15 @@ class parse_ezlog(object):
 		string = 'Number of Unique IP: {}'.format(count)
 		if (verbose): print(string)
 		dump_string_to_out(string+'\n', stat_file, 'a')
+
+	def finale(self, a, b):
+		self.unique_items = zip(self.ip[a:b+1], self.request[a:b+1])
+		seen = set()
+		print(a, b)
+		for i, element in enumerate(self.unique_items, 1):
+			if element not in seen:
+				self.indices.append(a + i)
+			seen.add(element)
 
 	def dt_to_unix_timestamp(self):
 		for i in range(len(self.date)):
@@ -174,7 +189,8 @@ def count_oncampus_occurences(data_in):
 	unicode_ip_net = str(oncampaddr)
 	for i in range(len(data_in)):
 		unicode_ip_request = str(data_in[i][0])
-		if ipaddress.ip_address(unicode_ip_request) in ipaddress.ip_network(unicode_ip_net):
+		if ipaddress.ip_address(
+			unicode_ip_request) in ipaddress.ip_network(unicode_ip_net):
 			on_campus_count += 1
 		else:
 			off_campus_count += 1
@@ -203,20 +219,30 @@ def generate_statistics(items, timewindow, flag):
 	iter = 1
 	for x in range(timeslices):
 		if (verbose): print('--------------------------------------------------')
+
+		# set initial value of lowerbound index to 0 in the first iteration
 		if items.basetime is 0:
 			items.basetime = items.unixtime[0]
 		string = 'Timeslice no. {0} ({1} - {2})\n'.format(
 			iter, items.basetime, items.basetime+timewindow)
 
+		# initialize time slice indices
 		uppertime = items.basetime + timewindow
-		if uppertime >= items.unixtime[-1]: uppertime = items.unixtime[-1]
 		baseindex = items.locate_index(items.basetime)
+		
+		# set ceiling value for uppertime
+		if uppertime >= items.unixtime[-1]: uppertime = items.unixtime[-1]
 		upperindex = items.locate_index(uppertime)
-		baseindexvalue = items.unixtime[baseindex]
-		upperindexvalue = items.unixtime[upperindex]
+
+		#print(upperindex)
 		if upperindex != baseindex:
-			upperindex = items.locate_index(uppertime) - 1
-			upperindexvalue = items.unixtime[upperindex]
+			if (x != timeslices-1): upperindex -= 1
+			else: upperindex = items.locate_index(uppertime)
+
+		# get unixtime value of upperbound and lowerbound indices
+		baseindexvalue = items.unixtime[baseindex]		
+		upperindexvalue = items.unixtime[upperindex]
+		#print(upperindex)
 
 		string += '{0} to {1}\n'.format(
 			datetime.datetime.fromtimestamp(
@@ -230,12 +256,21 @@ def generate_statistics(items, timewindow, flag):
 			len(items.unixtime[baseindex:upperindex])+1)
 
 		# do some processing
-		# put your statistics function here
+		# put your statistical function generation here
 		if (verbose): print(string)
 		dump_string_to_out('\n'+string+'\n', stat_file, 'a')
 
 		count_oncampus_occurences(items.filtered_items[baseindex:upperindex])
 		items.unique_content(baseindex, upperindex)
+		print(baseindexvalue, upperindexvalue,
+			uppertime-items.basetime, baseindex, upperindex)
+
+		# FIXME: prints / passes correct upperindexvalue now
+		# previous output: 8776, fixed output: 8777
+		# but items.finale still does not get the last index
+		# which is 8777+1 = 8778 (since index shifted to
+		# start at 1)
+		items.finale(baseindex, upperindex)
 
 		# checks if timeslice is the last one
 		# ends loop if timeslice reaches EOL
@@ -255,6 +290,20 @@ def dumpstring(items):
 		csv_string += items.bytes[i] + '\n'
 		items.parsed = csv_string
 	return items.parsed
+
+def dumpstring2(items):
+	csv_string = ''
+	for i in range(len(items.unique_items)):
+		csv_string += items.i[i] + ', '
+		csv_string += items.n[i] + ', '
+		csv_string += items.d[i] + ', '
+		csv_string += items.t[i] + ', '
+		csv_string += (str(items.u[i])) + ', '
+		csv_string += items.r[i] + ', '
+		csv_string += items.b[i] + '\n'
+		#items.parsed = csv_string
+	#return items.parsed
+	return csv_string
 
 def dump_string_to_out(string, filename, mode):
 	file = open(filename, mode)
