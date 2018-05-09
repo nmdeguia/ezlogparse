@@ -285,21 +285,7 @@ def dumpstring(items):
 		csv_string += items.bytes[i] + '\n'
 		items.parsed = csv_string
 	return items.parsed
-
-def dumpstring2(items):
-	csv_string = ''
-	for i in range(len(items.unique_items)):
-		csv_string += items.i[i] + ', '
-		csv_string += items.n[i] + ', '
-		csv_string += items.d[i] + ', '
-		csv_string += items.t[i] + ', '
-		csv_string += (str(items.u[i])) + ', '
-		csv_string += items.r[i] + ', '
-		csv_string += items.b[i] + '\n'
-		#items.parsed = csv_string
-	#return items.parsed
-	return csv_string
-
+	
 def dump_string_to_out(string, filename, mode):
 	file = open(filename, mode)
 	file.write(string)
