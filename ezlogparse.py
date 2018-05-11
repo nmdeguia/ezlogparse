@@ -14,7 +14,6 @@
 from sys import argv
 from collections import Counter
 from bisect import bisect_left
-from orderedset import OrderedSet
 import ipaddress
 import time, datetime
 import re, argparse
@@ -27,13 +26,12 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	start_time = time.time()
 	print("Starting EZlogparse...")
 	print("==================================================")
-
 	# check if user wants to analyze a whole directory
 	# dir == None == unspecified, therefore ezlogparse
 	# will execute with the default single log file in
 	# the current working directory of the script
 	flag = 0
-	if (dir == None): execute_main(in_file, flag)
+	if (dir == None): execute_main(in_file, flag, start_time)
 	else:
 		for filename in glob.glob(os.path.join(dir,ext)):
 			in_file = filename
@@ -48,27 +46,19 @@ def execute_main(in_file, flag):
 	data.extract()
 	data.dt_to_unix_timestamp()
 	mode = ''
-	#csv_string = dumpstring(data)
-	#if (flag == 0): dump_string_to_out(csv_string, out_file, 'w')
-	#else: dump_string_to_out(csv_string, out_file, 'a')
-
 	if (flag == 0): mode = 'w'
 	else: mode = 'a'
 
 	print('Parsing done!')
 	print('Data file: {0}'.format(out_file))
 	print('--------------------------------------------------')
-
-	#if (genstat):
-	#	generate_statistics(data, timewindow, flag)
-	#	#dump_string_to_out(data.str_stat, stat_file)
-	#	print('--------------------------------------------------')
-	#	print('Statistical report complete')
-	#	print('Stat file: {0}'.format(stat_file))
+	#print('Run time after Extraction: {0}'.format(elapsed_time(time.time() - start_time)))
 	generate_statistics(data, timewindow, flag)
+	#print('Run time after Stats: {0}'.format(elapsed_time(time.time() - start_time)))
 	csv_string = final_string(data)
+	#print('Run time after Parse: {0}'.format(elapsed_time(time.time() - start_time)))
 	dump_string_to_out(csv_string, out_file, mode)
-
+	#print('Run time after File Write: {0}'.format(elapsed_time(time.time() - start_time)))
 	print('--------------------------------------------------')
 	print('Statistical report complete')
 	print('Stat file: {0}'.format(stat_file))
@@ -87,8 +77,8 @@ def elapsed_time(sec):
 
 class parse_ezlog(object):
 	def __init__(self, in_file):
-		file = open(in_file, 'r')
-		file.close()
+		#file = open(in_file, 'r')
+		#file.close()
 
 		with open(in_file, 'r') as f:
 			self.str_split = [i.split() for i in f]
@@ -98,6 +88,7 @@ class parse_ezlog(object):
 		self.content = list()
 		self.parsed = ''
 		self.final = ''
+		self.string = ''
 
 		self.ip = list()			#0
 		self.name = list()			#2
@@ -133,49 +124,39 @@ class parse_ezlog(object):
 	def unique_content(self, a, b):
 		count = 0
 		dup = 0
-		self.unique = OrderedSet(zip(self.ip[a:b+1], self.request[a:b+1]))
+		temp = zip(self.ip[a:b+1], self.request[a:b+1])
+		self.unique = set()
+		for i, element in enumerate(temp):
+			if element not in self.unique:
+				self.indices.append(a + i)
+			self.unique.add(element)
 		self.duplicate = list(zip(*self.unique))
 
 		if len(self.duplicate) > 0:
 			self.duplicate = self.duplicate.pop(1)
 			self.duplicate = Counter(self.duplicate)
 
-			for i in self.duplicate.most_common():
-				dup += 1
-				string = 'CID: {0:03d}, No. of requests: {1}'.format(dup, i[1])
+			for i, j in enumerate(self.duplicate.most_common(), 1):
+				string = 'CID: {0:03d}, No. of requests: {1}'.format(i, j[1])
 				if (verbose): print(string)
 				dump_string_to_out(string+'\n', stat_file, 'a')
 			string = 'Number of Unique URLs: {}'.format(len(set(self.duplicate)))
 			if (verbose): print(string)
 			dump_string_to_out(string+'\n', stat_file, 'a')
 
-		self.unique = OrderedSet(zip(self.ip[a:b+1], self.request[a:b+1]))
-		for i in self.unique:
-			count += 1
-			string = 'IP{}: {}\nURL{}: {}'.format(count, i[0], count, i[1])
+		for i, j in enumerate(self.unique, 1):
+			string = 'IP{}: {}\nURL{}: {}'.format(i, j[0], i, j[1])
 			dump_string_to_out(string+'\n', stat_file, 'a')
 
 		string = 'Number of Unique IP: {}'.format(count)
 		if (verbose): print(string)
 		dump_string_to_out(string+'\n', stat_file, 'a')
 
-	def finale(self, a, b):
-		self.unique_items = zip(self.ip[a:b+1], self.request[a:b+1])
-		seen = set()
-		#print(a, b)
-		for i, element in enumerate(self.unique_items):
-			if element not in seen:
-				self.indices.append(a + i)
-			seen.add(element)
-
 	def final_content(self):
 		temp = list(zip(self.ip, self.name, self.date, self.tzone,
 			self.unixtime, self.request, self.bytes))
-		#print (self.indices)
 		for i in self.indices:
 			self.content.append(temp[i])
-		#print (self.content)
-		#print ("This is self.content")
 
 	def dt_to_unix_timestamp(self):
 		for i in range(len(self.date)):
@@ -229,7 +210,7 @@ def generate_statistics(items, timewindow, flag):
 	print(string)
 	if (flag == 0): dump_string_to_out(string + '\n', stat_file, 'w')
 	else: dump_string_to_out(string + '\n', stat_file, 'a')
-
+	#print('Run time after Calculating TimeSlices: {0}'.format(elapsed_time(time.time() - start_time)))
 	iter = 1
 	for x in range(timeslices):
 		if (verbose): print('--------------------------------------------------')
@@ -273,16 +254,18 @@ def generate_statistics(items, timewindow, flag):
 		# put your statistical function generation here
 		if (verbose): print(string)
 		dump_string_to_out('\n'+string+'\n', stat_file, 'a')
-
+		#print('Run time after Time Format {0}: {1}'.format(iter, elapsed_time(time.time() - start_time)))
 		count_oncampus_occurences(items.filtered_items[baseindex:upperindex])
+		#print('Run time after On Campus Count: {0}: {1}'.format(iter, elapsed_time(time.time() - start_time)))
 		items.unique_content(baseindex, upperindex)
+		#print('Run time after Retrieving Unique Content: {0}: {1}'.format(iter, elapsed_time(time.time() - start_time)))
 		#print(baseindexvalue, upperindexvalue,
 		#	uppertime-items.basetime, baseindex, upperindex)
-		items.finale(baseindex, upperindex)
 		# checks if timeslice is the last one
 		# ends loop if timeslice reaches EOL
 		if x == timeslices-1: break
 		else: items.basetime = uppertime
+		#print('Run time after TimeSlice {0}: {1}'.format(iter , elapsed_time(time.time() - start_time)))
 		iter += 1
 	items.final_content()
 
@@ -313,9 +296,10 @@ def final_string(items):
 	return items.final
 
 def dump_string_to_out(string, filename, mode):
-	file = open(filename, mode)
-	file.write(string)
-	file.close()
+	with open(filename, mode) as f: f.write(string)
+	#file = open(filename, mode)
+	#file.write(string)
+	#file.close()
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -364,10 +348,10 @@ if __name__ == '__main__':
 		'--verbose','-v',action = 'store_true',
 		help = 'Print verbose conversions'
 	)
-	parser.add_argument(
-		'--genstat','-gs',action = 'store_true',
-		help = 'Generate statistical report'
-	)
+	#parser.add_argument(
+	#	'--genstat','-gs',action = 'store_true',
+	#	help = 'Generate statistical report'
+	#)
 	parser.add_argument(
 		'--version',action = 'store_true',
 		help = 'Prints version'
