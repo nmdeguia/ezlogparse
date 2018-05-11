@@ -52,7 +52,7 @@ def execute_main(in_file, flag):
 	print('Data file: {0}'.format(out_file))
 	print('--------------------------------------------------')
 	generate_statistics(data, timewindow, flag)
-	csv_string = final_string(data.content)
+	csv_string = '\n'.join(i for i in data.string)
 	dump_string_to_out(csv_string, out_file, mode)
 	print('--------------------------------------------------')
 	print('Statistical Report done!')
@@ -170,6 +170,9 @@ def count_oncampus_occurences(data_in, strings):
 	strings.append('Number of off-campus accesses: {0}'.format(off_campus_count+1))
 	if (verbose): print(strings[-1])
 
+def dump_string_to_out(strings, filename, mode):
+	with open(filename, mode) as f: f.write(strings)
+
 def generate_statistics(items, timewindow, flag):
 	mode = ''
 	finaltime = items.unixtime[len(items.unixtime)-1]
@@ -239,12 +242,6 @@ def generate_statistics(items, timewindow, flag):
 	items.final_content()
 	temp = '\n'.join(i for i in items.string)
 	dump_string_to_out(temp, stat_file, mode)
-
-def final_string(items):
-	return '\n'.join(','.join(i) for i in items)
-
-def dump_string_to_out(strings, filename, mode):
-	with open(filename, mode) as f: f.write(strings)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
