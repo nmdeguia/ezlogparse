@@ -30,6 +30,9 @@ Sample usage:
 
 ### Version:
 
+Version 3.0:
+  - Parser generates the unique content per timewindow. Execution time optimized
+  
 Version 2.0:
   - Able to generate statistical data
 
