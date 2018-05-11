@@ -52,7 +52,7 @@ def execute_main(in_file, flag):
 	print('Data file: {0}'.format(out_file))
 	print('--------------------------------------------------')
 	generate_statistics(data, timewindow, flag)
-	csv_string = '\n'.join(i for i in data.string)
+	csv_string = final_string(data.content)
 	dump_string_to_out(csv_string, out_file, mode)
 	print('--------------------------------------------------')
 	print('Statistical Report done!')
@@ -169,6 +169,9 @@ def count_oncampus_occurences(data_in, strings):
 	if (verbose): print(strings[-1])
 	strings.append('Number of off-campus accesses: {0}'.format(off_campus_count+1))
 	if (verbose): print(strings[-1])
+
+def final_string(strings):
+	return '\n'.join(','.join(i) for i in strings)
 
 def dump_string_to_out(strings, filename, mode):
 	with open(filename, mode) as f: f.write(strings)
