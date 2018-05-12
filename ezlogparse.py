@@ -45,7 +45,7 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	flag = 0
 	if (dir == None): execute_main(in_file, flag)
 	else:
-		for filename in glob.glob(os.path.join(dir,ext)):
+		for filename in sorted(glob.glob(os.path.join(dir,ext))):
 			in_file = filename
 			global_log_names.append(in_file)
 			execute_main(in_file, flag)
@@ -56,9 +56,10 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	print('Total run time: {0}'.format(elapsed_time(time.time() - start_time)))
 
 	# generate plots for statistical data
-	if (plot):
-		if os.fork(): pass
-		else: generate_stat_plot()
+	if (plot): generate_stat_plot()
+		# FIXME: Does not work in windows, linux only
+		# if os.fork(): pass
+		# else: generate_stat_plot()
 	else: pass
 
 # main subfunction to execute in-case user defines execution
@@ -282,13 +283,14 @@ def generate_stat_plot():
 	pos_x_axis = np.arange(len(global_log_names))
 
 	plt.bar(pos_x_axis, global_log_unique_cnt, align='center', alpha=0.5)
-	plt.xticks(pos_x_axis, range(1,14), rotation='horizontal')
+	plt.xticks(pos_x_axis,
+		[s.strip(dir+'ezp.') for s in global_log_names], rotation='vertical')
 	plt.ylabel('Number of Unique Requests')
-	plt.xlabel('Month')
+	# plt.xlabel('Month')
 	plt.title('Number of Unique Requests in One Year')
 
-	plt.show()
-	plt.savefig('num_unique_reqs_1y.png', format='png', dpi=300)
+	# plt.show()
+	plt.savefig('num_unique_reqs_1y.png', format='png', dpi=400, bbox_inches='tight')
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
