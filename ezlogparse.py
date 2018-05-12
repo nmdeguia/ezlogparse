@@ -30,8 +30,8 @@ dbg = '<=== debug string ===>'
 # global variable declarations
 global_log_unique_cnt = []
 global_log_names = []
-global_on_campus = 0
-global_off_campus = 0
+global_on_campus = []
+global_off_campus = []
 
 # main function -- function calls are done here
 def main(in_file, out_file, stat_file, keyword, timewindow):
@@ -55,8 +55,9 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 
 	print('Data file: {0}'.format(out_file))
 	print('Stat file: {0}'.format(stat_file))
-	print('Total On Campus connections: {}'.format(global_on_campus))
-	print('Total Off Campus connections: {}'.format(global_off_campus))
+	print('Total Connections: {}'.format(sum(global_log_unique_cnt)))
+	print('Total On Campus connections: {}'.format(sum(global_on_campus)))
+	print('Total Off Campus connections: {}'.format(sum(global_off_campus)))
 	print('Total run time: {0}'.format(elapsed_time(time.time() - start_time)))
 
 	# generate plots for statistical data
@@ -85,6 +86,7 @@ def execute_main(in_file, flag):
 	dump_string_to_out(csv_string, out_file, mode)
 	print('--------------------------------------------------')
 	print('Statistical Report done!')
+	print(len(list(csv_string)))
 
 	if (dir == None): pass
 	else: print('==================================================')
@@ -210,9 +212,6 @@ def dump_string_to_out(strings, filename, mode):
 	with open(filename, mode) as f: f.write(strings)
 
 def generate_statistics(items, timewindow, flag):
-	global global_on_campus
-	global global_off_campus
-	mode = ''
 	finaltime = items.unixtime[len(items.unixtime)-1]
 	elapsedtime = finaltime - items.unixtime[0]
 	timeslices = int((elapsedtime/timewindow)+1)
@@ -276,23 +275,28 @@ def generate_statistics(items, timewindow, flag):
 		# get total number of unique items per logfile
 		if (iter == 1):
 			unique_items = len(unique)
+			unique_on_conn = on_conn
+			unique_off_conn = off_conn
 		else:
 			unique_items += len(unique)
-
-		global_on_campus += on_conn
-		global_off_campus += off_conn
+			unique_on_conn += on_conn
+			unique_off_conn += off_conn
 
 		# checks if timeslice is the last one
 		# ends loop if timeslice reaches EOL
 		if x == timeslices-1: break
 		else: items.basetime = uppertime
 		iter += 1
+
 	items.final_content()
 	temp = '\n'.join(i for i in items.string)
 	dump_string_to_out(temp, stat_file, mode)
-	print('Total no. of unique items in log: {0}'.format(unique_items))
+
 	global_log_unique_cnt.append(unique_items)
-	# print(isinstance(unique_items, int))
+	global_on_campus.append(unique_on_conn)
+	global_off_campus.append(unique_off_conn)
+
+	print('Total no. of unique items in log: {0}'.format(unique_items))
 
 # FIXME: this only plots the global unique items per log file
 def generate_stat_plot():
