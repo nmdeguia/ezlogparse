@@ -83,10 +83,11 @@ def execute_main(in_file, flag):
 	print('--------------------------------------------------')
 	generate_statistics(data, timewindow, flag)
 	csv_string = final_string(data.content)
+	# FIXME: for debugging purpose, store original filtered items in a debug file
+	#csv_string = final_string(data.filtered_items)
 	dump_string_to_out(csv_string, out_file, mode)
 	print('--------------------------------------------------')
 	print('Statistical Report done!')
-	print(len(list(csv_string)))
 
 	if (dir == None): pass
 	else: print('==================================================')
@@ -119,7 +120,6 @@ class parse_ezlog(object):
 		self.bytes = list()			#7
 
 		self.unixtime = list()
-		self.basetime = 0
 
 	def search(self, keyword):
 		for i in range(len(self.str_split)):
@@ -154,7 +154,7 @@ class parse_ezlog(object):
 		return int(index)
 
 	def unique_content(self, a, b):
-		temp = zip(self.ip[a:b+1], self.request[a:b+1])
+		temp = zip(self.ip[a:b], self.request[a:b])
 		unique = set()
 		for i, element in enumerate(temp):
 			if element not in unique:
@@ -163,19 +163,18 @@ class parse_ezlog(object):
 		duplicates = list(zip(*unique))
 
 		if len(duplicates) > 0:
-			duplicates = duplicates.pop(1)
-			duplicates = Counter(duplicates)
+			temp = Counter(duplicates.pop(1))
 
-			for i, j in enumerate(duplicates.most_common(), 1):
+			for i, j in enumerate(temp.most_common(), 1):
 				self.string.append('CID: {0:03d}, No. of requests: {1}'.format(i, j[1]))
 				if (verbose): print(self.string[-1])
-			self.string.append('Number of Unique URLs: {}'.format(len(set(duplicates))))
+			self.string.append('Number of Unique URLs: {}'.format(len(set(temp))))
 			if (verbose): print(self.string[-1])
 
 		for i, j in enumerate(unique, 1):
 			self.string.append('IP{}: {}\nURL{}: {}'.format(i, j[0], i, j[1]))
 
-		self.string.append('Number of Unique IP: {}'.format(i))
+		self.string.append('Number of Unique IP: {}'.format(len(list(unique))))
 		if (verbose): print(self.string[-1])
 		return list(unique)
 
@@ -206,48 +205,50 @@ def cnt_oncampus_requests(data_in, strings):
 	return on_campus_count, off_campus_count
 
 def final_string(strings):
-	return '\n'.join(','.join(i) for i in strings)
+	return '\n'.join(','.join(i) for i in strings) + '\n'
 
 def dump_string_to_out(strings, filename, mode):
 	with open(filename, mode) as f: f.write(strings)
 
 def generate_statistics(items, timewindow, flag):
-	finaltime = items.unixtime[len(items.unixtime)-1]
+	basetime = items.unixtime[0]
+	finaltime = items.unixtime[-1]
 	elapsedtime = finaltime - items.unixtime[0]
 	timeslices = int((elapsedtime/timewindow)+1)
 
 	print('Generating Statistics')
 	print('Initial timestamp: {0} [{1}]'.format(items.unixtime[0], 0))
-	print('Final timestamp: {0} [{1}]'.format(
-		items.unixtime[len(items.unixtime)-1], len(items.unixtime)-1))
+	print('Final timestamp: {0} [{1}]'.format(finaltime, len(items.unixtime)-1))
 	print('Per time slice: {0} seconds.'.format(timewindow))
-	print('Total number of items: {0}'.format(len(items.unixtime)))
+	#print('Total number of items: {0}'.format(len(items.unixtime)))
 	print('Number of time slices: {0}'.format(timeslices))
 
 	if (flag == 0): mode = 'w'
 	else: mode = 'a'
-	iter = 1
-	for x in range(timeslices):
+
+	for iter, x in enumerate(range(timeslices),1):
 		if (verbose): print('--------------------------------------------------')
 
 		# set initial value of lowerbound index to 0 in the first iteration
-		if items.basetime is 0:
-			items.basetime = items.unixtime[0]
+		#if basetime is 0:
+		#	basetime = items.unixtime[0]
 		items.string.append('Timeslice no. {0} ({1} - {2})'.format(
-			iter, items.basetime, items.basetime+timewindow))
+			iter, basetime, basetime+timewindow))
 		if (verbose): print(items.string[-1])
 
 		# initialize time slice indices
-		uppertime = items.basetime + timewindow
-		baseindex = items.locate_index(items.basetime)
+		uppertime = basetime + timewindow
+		baseindex = items.locate_index(basetime)
 
 		# set ceiling value for uppertime
 		if uppertime >= items.unixtime[-1]: uppertime = items.unixtime[-1]
 		upperindex = items.locate_index(uppertime)
 
 		if upperindex != baseindex:
+			#length = len(items.unixtime[baseindex:upperindex])
 			if (x != timeslices-1): upperindex -= 1
 			else: upperindex = items.locate_index(uppertime)
+		#else: length = 0
 
 		# get unixtime value of upperbound and lowerbound indices
 		baseindexvalue = items.unixtime[baseindex]
@@ -263,14 +264,12 @@ def generate_statistics(items, timewindow, flag):
 		items.string.append('Base: {0} [{1}], Upper: {2} [{3}]'.format(
 			baseindexvalue, baseindex, upperindexvalue, upperindex))
 		if (verbose): print(items.string[-1])
-		items.string.append('Number of items in sublist: {0}'.format(
-			len(items.unixtime[baseindex:upperindex])+1))
-		if (verbose): print(items.string[-1])
+		#items.string.append('Number of items in sublist: {0}'.format(length))
+		#if (verbose): print(items.string[-1])
 
 		# statistical function generation starts here
 		unique = items.unique_content(baseindex, upperindex)
-		on_conn, off_conn = cnt_oncampus_requests(
-			unique, items.string)
+		on_conn, off_conn = cnt_oncampus_requests(unique, items.string)
 
 		# get total number of unique items per logfile
 		if (iter == 1):
@@ -285,18 +284,17 @@ def generate_statistics(items, timewindow, flag):
 		# checks if timeslice is the last one
 		# ends loop if timeslice reaches EOL
 		if x == timeslices-1: break
-		else: items.basetime = uppertime
-		iter += 1
-
-	items.final_content()
-	temp = '\n'.join(i for i in items.string)
-	dump_string_to_out(temp, stat_file, mode)
+		else: basetime = uppertime
 
 	global_log_unique_cnt.append(unique_items)
 	global_on_campus.append(unique_on_conn)
 	global_off_campus.append(unique_off_conn)
 
-	print('Total no. of unique items in log: {0}'.format(unique_items))
+	items.string.append('Total no. of unique items in log: {0}'.format(unique_items))
+	print (items.string[-1])
+	items.final_content()
+	temp = '\n'.join(i for i in items.string) + '\n'
+	dump_string_to_out(temp, stat_file, mode)
 
 # FIXME: this only plots the global unique items per log file
 def generate_stat_plot():
@@ -378,4 +376,4 @@ if __name__ == '__main__':
 			stat_file = args.stat_file,
 			keyword = args.keyword,
 			timewindow = args.timewindow
-		)
+)
