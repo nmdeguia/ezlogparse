@@ -19,13 +19,25 @@ import time, datetime
 import re, argparse
 import os, glob
 
+# plotting library imports
+import matplotlib.pyplot as plt; plt.rcdefaults()
+import matplotlib.pyplot as plt
+import numpy as np
+
 ver = '3.0'
 dbg = '<=== debug string ===>'
 
+# global variable declarations
+global_log_unique_cnt = []
+global_log_names = []
+
+# main function -- function calls are done here
 def main(in_file, out_file, stat_file, keyword, timewindow):
 	start_time = time.time()
+
 	print("Starting EZlogparse...")
 	print("==================================================")
+
 	# check if user wants to analyze a whole directory
 	# dir == None == unspecified, therefore ezlogparse
 	# will execute with the default single log file in
@@ -35,12 +47,25 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	else:
 		for filename in glob.glob(os.path.join(dir,ext)):
 			in_file = filename
+			global_log_names.append(in_file)
 			execute_main(in_file, flag)
 			flag += 1
+
+	print('Data file: {0}'.format(out_file))
+	print('Stat file: {0}'.format(stat_file))				
 	print('Total run time: {0}'.format(elapsed_time(time.time() - start_time)))
 
+	# generate plots for statistical data
+	if (plot):
+		if os.fork(): pass
+		else: generate_stat_plot()
+	else: pass
+
+# main subfunction to execute in-case user defines execution
+# to run analysis on multiple files in a specified directory
 def execute_main(in_file, flag):
 	print('Parsing {0}: Keyword "{1}"'.format(in_file, keyword))
+	print('--------------------------------------------------')	
 	data = parse_ezlog(in_file)
 	data.search(keyword)
 	data.dt_to_unix_timestamp()
@@ -49,14 +74,12 @@ def execute_main(in_file, flag):
 	else: mode = 'a'
 
 	print('Parsing done!')
-	print('Data file: {0}'.format(out_file))
 	print('--------------------------------------------------')
 	generate_statistics(data, timewindow, flag)
 	csv_string = final_string(data.content)
 	dump_string_to_out(csv_string, out_file, mode)
 	print('--------------------------------------------------')
 	print('Statistical Report done!')
-	print('Stat file: {0}'.format(stat_file))
 
 	if (dir == None): pass
 	else: print('==================================================')
@@ -147,6 +170,7 @@ class parse_ezlog(object):
 
 		self.string.append('Number of Unique IP: {}'.format(i))
 		if (verbose): print(self.string[-1])
+		return unique
 
 	def final_content(self):
 		temp = list(zip(self.ip, self.name, self.date, self.tzone,
@@ -154,7 +178,7 @@ class parse_ezlog(object):
 		for i in self.indices:
 			self.content.append(temp[i])
 
-def count_oncampus_occurences(data_in, strings):
+def cnt_oncampus_requests(data_in, strings):
 	on_campus_count = 0
 	off_campus_count = 0
 	unicode_ip_net = str(oncampaddr)
@@ -186,9 +210,9 @@ def generate_statistics(items, timewindow, flag):
 	print('Initial timestamp: {0} [{1}]'.format(items.unixtime[0], 0))
 	print('Final timestamp: {0} [{1}]'.format(
 		items.unixtime[len(items.unixtime)-1], len(items.unixtime)-1))
+	print('Per time slice: {0} seconds.'.format(timewindow))		
 	print('Total number of items: {0}'.format(len(items.unixtime)))
 	print('Number of time slices: {0}'.format(timeslices))
-	print('Per time slice: {0} seconds.'.format(timewindow))
 
 	if (flag == 0): mode = 'w'
 	else: mode = 'a'
@@ -211,7 +235,6 @@ def generate_statistics(items, timewindow, flag):
 		if uppertime >= items.unixtime[-1]: uppertime = items.unixtime[-1]
 		upperindex = items.locate_index(uppertime)
 
-		#print(upperindex)
 		if upperindex != baseindex:
 			if (x != timeslices-1): upperindex -= 1
 			else: upperindex = items.locate_index(uppertime)
@@ -219,7 +242,6 @@ def generate_statistics(items, timewindow, flag):
 		# get unixtime value of upperbound and lowerbound indices
 		baseindexvalue = items.unixtime[baseindex]
 		upperindexvalue = items.unixtime[upperindex]
-		#print(upperindex)
 
 		items.string.append('{0} to {1}'.format(
 			datetime.datetime.fromtimestamp(
@@ -234,9 +256,15 @@ def generate_statistics(items, timewindow, flag):
 		items.string.append('Number of items in sublist: {0}'.format(
 			len(items.unixtime[baseindex:upperindex])+1))
 		if (verbose): print(items.string[-1])
+
 		# statistical function generation starts here
-		count_oncampus_occurences(items.filtered_items[baseindex:upperindex], items.string)
-		items.unique_content(baseindex, upperindex)
+		cnt_oncampus_requests(items.filtered_items[baseindex:upperindex], items.string)
+		unique = items.unique_content(baseindex, upperindex)
+
+		# get total number of unique items per logfile
+		if (iter == 1): unique_items = len(unique)
+		else: unique_items += len(unique)
+
 		# checks if timeslice is the last one
 		# ends loop if timeslice reaches EOL
 		if x == timeslices-1: break
@@ -245,6 +273,22 @@ def generate_statistics(items, timewindow, flag):
 	items.final_content()
 	temp = '\n'.join(i for i in items.string)
 	dump_string_to_out(temp, stat_file, mode)
+	print('Total no. of unique items in log: {0}'.format(unique_items))
+	global_log_unique_cnt.append(unique_items)
+	# print(isinstance(unique_items, int))
+
+# FIXME: this only plots the global unique items per log file
+def generate_stat_plot():
+	pos_x_axis = np.arange(len(global_log_names))
+
+	plt.bar(pos_x_axis, global_log_unique_cnt, align='center', alpha=0.5)
+	plt.xticks(pos_x_axis, range(1,14), rotation='horizontal')
+	plt.ylabel('Number of Unique Requests')
+	plt.xlabel('Month')
+	plt.title('Number of Unique Requests in One Year')
+
+	plt.show()
+	plt.savefig('num_unique_reqs_1y.png', format='png', dpi=300)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -290,6 +334,10 @@ if __name__ == '__main__':
 		help = 'Specify campus ip address',default = '10.0.0.0/8'
 	)
 	parser.add_argument(
+		'--plot','-p',action = 'store_true',
+		help = 'Plot statistical graphs'
+	)
+	parser.add_argument(
 		'--verbose','-v',action = 'store_true',
 		help = 'Print verbose conversions'
 	)
@@ -308,4 +356,4 @@ if __name__ == '__main__':
 			stat_file = args.stat_file,
 			keyword = args.keyword,
 			timewindow = args.timewindow
-)
+	)
