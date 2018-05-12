@@ -30,6 +30,8 @@ dbg = '<=== debug string ===>'
 # global variable declarations
 global_log_unique_cnt = []
 global_log_names = []
+global_on_campus = 0
+global_off_campus = 0
 
 # main function -- function calls are done here
 def main(in_file, out_file, stat_file, keyword, timewindow):
@@ -52,7 +54,9 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 			flag += 1
 
 	print('Data file: {0}'.format(out_file))
-	print('Stat file: {0}'.format(stat_file))				
+	print('Stat file: {0}'.format(stat_file))
+	print('Total On Campus connections: {}'.format(global_on_campus))
+	print('Total Off Campus connections: {}'.format(global_off_campus))
 	print('Total run time: {0}'.format(elapsed_time(time.time() - start_time)))
 
 	# generate plots for statistical data
@@ -66,7 +70,7 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 # to run analysis on multiple files in a specified directory
 def execute_main(in_file, flag):
 	print('Parsing {0}: Keyword "{1}"'.format(in_file, keyword))
-	print('--------------------------------------------------')	
+	print('--------------------------------------------------')
 	data = parse_ezlog(in_file)
 	data.search(keyword)
 	data.dt_to_unix_timestamp()
@@ -171,7 +175,10 @@ class parse_ezlog(object):
 
 		self.string.append('Number of Unique IP: {}'.format(i))
 		if (verbose): print(self.string[-1])
-		return unique
+		return list(unique)
+
+	def unique_sites(self, a, b):
+		pass
 
 	def final_content(self):
 		temp = list(zip(self.ip, self.name, self.date, self.tzone,
@@ -192,8 +199,9 @@ def cnt_oncampus_requests(data_in, strings):
 			off_campus_count += 1
 	strings.append('Number of on-campus accesses: {0}'.format(on_campus_count))
 	if (verbose): print(strings[-1])
-	strings.append('Number of off-campus accesses: {0}'.format(off_campus_count+1))
+	strings.append('Number of off-campus accesses: {0}'.format(off_campus_count))
 	if (verbose): print(strings[-1])
+	return on_campus_count, off_campus_count
 
 def final_string(strings):
 	return '\n'.join(','.join(i) for i in strings)
@@ -202,6 +210,8 @@ def dump_string_to_out(strings, filename, mode):
 	with open(filename, mode) as f: f.write(strings)
 
 def generate_statistics(items, timewindow, flag):
+	global global_on_campus
+	global global_off_campus
 	mode = ''
 	finaltime = items.unixtime[len(items.unixtime)-1]
 	elapsedtime = finaltime - items.unixtime[0]
@@ -211,7 +221,7 @@ def generate_statistics(items, timewindow, flag):
 	print('Initial timestamp: {0} [{1}]'.format(items.unixtime[0], 0))
 	print('Final timestamp: {0} [{1}]'.format(
 		items.unixtime[len(items.unixtime)-1], len(items.unixtime)-1))
-	print('Per time slice: {0} seconds.'.format(timewindow))		
+	print('Per time slice: {0} seconds.'.format(timewindow))
 	print('Total number of items: {0}'.format(len(items.unixtime)))
 	print('Number of time slices: {0}'.format(timeslices))
 
@@ -259,12 +269,18 @@ def generate_statistics(items, timewindow, flag):
 		if (verbose): print(items.string[-1])
 
 		# statistical function generation starts here
-		cnt_oncampus_requests(items.filtered_items[baseindex:upperindex], items.string)
 		unique = items.unique_content(baseindex, upperindex)
+		on_conn, off_conn = cnt_oncampus_requests(
+			unique, items.string)
 
 		# get total number of unique items per logfile
-		if (iter == 1): unique_items = len(unique)
-		else: unique_items += len(unique)
+		if (iter == 1):
+			unique_items = len(unique)
+		else:
+			unique_items += len(unique)
+
+		global_on_campus += on_conn
+		global_off_campus += off_conn
 
 		# checks if timeslice is the last one
 		# ends loop if timeslice reaches EOL
@@ -358,4 +374,4 @@ if __name__ == '__main__':
 			stat_file = args.stat_file,
 			keyword = args.keyword,
 			timewindow = args.timewindow
-	)
+		)
