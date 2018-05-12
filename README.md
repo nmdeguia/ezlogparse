@@ -8,6 +8,7 @@ Parser for data logs saved by ezproxy using Python.
 | --- | --- | --- | --- |
 | --version | Prints version | False | None
 | --verbose, -v | Verbose output, prints statistics | False | None
+| --plot, -p | Plot statististical graphs | False | None
 | --dir, -d | Directory of log files | pwd* | str
 | --ext, -e | Extension of files | *.log | str
 | --in_file, -f | Use custom input log file | data.log | string
