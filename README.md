@@ -27,7 +27,7 @@ Notes:
     
 Sample usage: 
 
-> $ python ezlogparse.py -v -f ezproxy.log -gst
+> $ python ezlogparse.py -v -f ezproxy.log
 
 ### Version:
 
