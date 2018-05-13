@@ -189,7 +189,7 @@ class parse_ezlog(object):
 			if (global_verbose): print(self.string[-1])
 
 		for i, j in enumerate(unique, 1):
-			self.string.append('IP{0}: {0}\nURL{0}: {0}'.format(i, j[0], i, j[1]))
+			self.string.append('IP{0}: {1}\nURL{2}: {3}'.format(i, j[0], i, j[1]))
 
 		self.string.append('Number of Unique IP: {0}'.format(len(list(unique))))
 		if (global_verbose): print(self.string[-1])
