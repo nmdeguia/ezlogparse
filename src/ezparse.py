@@ -33,6 +33,7 @@ global_log_unique_cnt = []
 global_log_names = []
 global_on_campus = []
 global_off_campus = []
+global_sites = list()
 global_verbose = False
 
 # main function -- function calls are done here
@@ -63,11 +64,12 @@ def main(infile, outfile, statfile, keyword, timewindow,
 	print('Total Connections: {0}'.format(sum(global_log_unique_cnt)))
 	print('Total On Campus connections: {0}'.format(sum(global_on_campus)))
 	print('Total Off Campus connections: {0}'.format(sum(global_off_campus)))
+	print('Total Online Libraries Accessed: {0}'.format(sum(global_sites)))
 	print("==================================================")
 	print('Data file: {0}'.format(outfile))
 	print('Stat file: {0}'.format(statfile))
 	print('Total run time: {0}'.format(elapsed_time(time.time() - start_time)))
-	print("==================================================")	
+	print("==================================================")
 
 	# generate plots for statistical data
 	# parameters: generate_bar_graph
@@ -82,7 +84,7 @@ def main(infile, outfile, statfile, keyword, timewindow,
 			'plot_requests_total.png')
 		ezplot.generate_pie_chart([sum(global_on_campus), sum(global_off_campus)],
 			['On Campus', 'Off Campus'], 'Percentage of Total Connections',
-			'plot_connections_total')
+			'plot_connections_total.png')
 	else: pass
 
 # main subfunction to execute in-case user defines execution
@@ -195,8 +197,26 @@ class parse_ezlog(object):
 		if (global_verbose): print(self.string[-1])
 		return list(unique)
 
-	def unique_sites(self, a, b):
-		pass
+	def unique_sites(self):
+		sites = list()
+		[sites.append(i[5].partition('//')[-1].partition(':')[0]) for i in self.content]
+		uni_sites = (set(sites))
+
+		rank = Counter(sites)
+		self.string.append('List of (Access Frequency) of Sites: ')
+		if (global_verbose): print(self.string[-1])
+
+		for i, j in enumerate(rank.most_common(), 1):
+			self.string.append('{0}. ({2}) - {1}'.format(i, j[0], j[1]))
+			if (global_verbose): print(self.string[-1])
+
+		self.string.append('Total Number of Unique Sites: {}'.format(len(uni_sites)))
+		if (global_verbose): print(self.string[-1])
+
+		#for i in list(set(uni_sites)):
+		#	self.string.append('\t {}'.format(i))
+		#	if (global_verbose): print(self.string[-1])
+		return rank.most_common()
 
 	def final_content(self):
 		temp = list(zip(self.ip, self.name, self.date, self.tzone,
@@ -228,7 +248,7 @@ def dump_string_to_out(strings, filename, mode):
 	with open(filename, mode) as f: f.write(strings)
 
 def generate_statistics(items, timewindow, oncampaddr, statfile, flag):
-	# set initial value of lowerbound index to 0 in the first iteration    	
+	# set initial value of lowerbound index to 0 in the first iteration
 	basetime = items.unixtime[0]
 	finaltime = items.unixtime[-1]
 	elapsedtime = finaltime - items.unixtime[0]
@@ -304,12 +324,17 @@ def generate_statistics(items, timewindow, oncampaddr, statfile, flag):
 		if x == timeslices-1: break
 		else: basetime = uppertime
 
+	items.final_content()
+	common_sites = items.unique_sites()	#[0] - site, [1] - frequency
+	#print(type(common_sites))
+	#for i in common_sites: print (i)
+	global_sites.append(len(common_sites))
 	global_log_unique_cnt.append(unique_items)
 	global_on_campus.append(unique_on_conn)
 	global_off_campus.append(unique_off_conn)
 
-	items.string.append('Total no. of unique items in log: {0}'.format(unique_items))
+	items.string.append('Total no. of unique items in log: {0} with {1} Timeslices'.format(unique_items, timeslices))
 	print (items.string[-1])
-	items.final_content()
+
 	temp = '\n'.join(i for i in items.string) + '\n'
 	dump_string_to_out(temp, statfile, mode)
