@@ -10,7 +10,7 @@
 # Usage: $ python ezlogparse.py --argument value
 #
 # More details in github.com/nmdeguia/ezlogparse/README.md
-
+# hello ner
 import argparse
 from src import ezparse
 
