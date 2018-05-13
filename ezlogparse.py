@@ -18,11 +18,12 @@ import ipaddress
 import time, datetime
 import re, argparse
 import os, glob
-
-# plotting library imports
-import matplotlib.pyplot as plt; plt.rcdefaults()
-import matplotlib.pyplot as plt
 import numpy as np
+
+# python script imports
+# this imports the plotting functions to generate graphs/plots
+# for parsed and analyzed ezproxy log data
+import ezplot
 
 ver = '3.0'
 dbg = '<=== debug string ===>'
@@ -36,11 +37,6 @@ global_off_campus = []
 # main function -- function calls are done here
 def main(in_file, outfile, statfile, keyword, timewindow):
 	start_time = time.time()
-
-	# if OS is windows, save plot only (fork doesn't work)
-	# or good if you can make multithreading work for windows
-	if (os.name == 'nt'): plt_mode = 'save_only'
-	else: plt_mode = 'show'	
 
 	print("Starting EZlogparse...")
 	print("==================================================")
@@ -60,9 +56,9 @@ def main(in_file, outfile, statfile, keyword, timewindow):
 			flag += 1
 
 	print('Overall EZProxy Log Analysis'.format())
-	print('Total Connections: {}'.format(sum(global_log_unique_cnt)))
-	print('Total On Campus connections: {}'.format(sum(global_on_campus)))
-	print('Total Off Campus connections: {}'.format(sum(global_off_campus)))
+	print('Total Connections: {0}'.format(sum(global_log_unique_cnt)))
+	print('Total On Campus connections: {0}'.format(sum(global_on_campus)))
+	print('Total Off Campus connections: {0}'.format(sum(global_off_campus)))
 	print("==================================================")
 	print('Data file: {0}'.format(outfile))
 	print('Stat file: {0}'.format(statfile))
@@ -71,18 +67,18 @@ def main(in_file, outfile, statfile, keyword, timewindow):
 
 	# generate plots for statistical data
 	# parameters: generate_bar_graph
-	# (x_axis, item_label, x_items, y_items, x_label, y_label, title, filename, plt_mode)
+	# (x_axis, item_label, x_items, y_items, x_label, y_label, title, filename)
 	# paramters: generate_pie_chart
-	# (sizes, labels, title, filename, plt_mode)
+	# (sizes, labels, title, filename)
 	if (plot and dir!=None):
-		generate_bar_graph(np.arange(len(global_log_names)),
+		ezplot.generate_bar_graph(np.arange(len(global_log_names)),
 			[s.strip(dir+'ezp.') for s in global_log_names], global_log_names,
 			global_log_unique_cnt, '', 'Total no. of Requests',
 			'Total no. of Unique Requests in One Year',
-			'plot_requests_total.png', plt_mode)
-		generate_pie_chart([sum(global_on_campus), sum(global_off_campus)],
+			'plot_requests_total.png')
+		ezplot.generate_pie_chart([sum(global_on_campus), sum(global_off_campus)],
 			['On Campus', 'Off Campus'], 'Percentage of Total Connections',
-			'plot_connections_total', plt_mode)
+			'plot_connections_total')
 	else: pass
 
 # main subfunction to execute in-case user defines execution
@@ -185,13 +181,13 @@ class parse_ezlog(object):
 			for i, j in enumerate(temp.most_common(), 1):
 				self.string.append('CID: {0:03d}, No. of requests: {1}'.format(i, j[1]))
 				if (verbose): print(self.string[-1])
-			self.string.append('Number of Unique URLs: {}'.format(len(set(temp))))
+			self.string.append('Number of Unique URLs: {0}'.format(len(set(temp))))
 			if (verbose): print(self.string[-1])
 
 		for i, j in enumerate(unique, 1):
-			self.string.append('IP{}: {}\nURL{}: {}'.format(i, j[0], i, j[1]))
+			self.string.append('IP{0}: {0}\nURL{0}: {0}'.format(i, j[0], i, j[1]))
 
-		self.string.append('Number of Unique IP: {}'.format(len(list(unique))))
+		self.string.append('Number of Unique IP: {0}'.format(len(list(unique))))
 		if (verbose): print(self.string[-1])
 		return list(unique)
 
@@ -312,41 +308,7 @@ def generate_statistics(items, timewindow, flag):
 	print (items.string[-1])
 	items.final_content()
 	temp = '\n'.join(i for i in items.string) + '\n'
-	dump_string_to_out(temp, statfile, mode)
-
-# this only plots the global unique items per log file
-def generate_bar_graph(pos_x_axis, x_item_label, x_items, y_items,
-	x_label, y_label, title, filename, plt_mode):
-
-	plt.bar(pos_x_axis, y_items, align='center', alpha=0.5)
-	plt.xticks(pos_x_axis, x_item_label, rotation='vertical')
-	plt.ylabel(y_label)
-	plt.xlabel(x_label)
-	plt.title(title)
-
-	if (plt_mode == 'show'):
-		print('Display: {0}'.format(title))
-		plt.show()
-	if (plt_mode == 'save_only'):
-		print('Saving {0} bar graph as {1}...'.format(title, filename))		    		
-		plt.savefig(filename, format='png', dpi=400, bbox_inches='tight')
-
-# this only shows the global total connections in all files
-def generate_pie_chart(sizes, labels, title, filename, plt_mode):
-	# FIXME: change my colors please
-	colors = ['green', 'gray']
-	explode = (0.1, 0)
-	plt.pie(sizes, explode=explode, labels=labels, colors=colors,
-		autopct='%1.1f%%', shadow=False, startangle=140)
-	plt.axis('equal')
-	plt.title(title)
-
-	if (plt_mode == 'show'):
-		print('Display: {0}'.format(title))
-		plt.show()
-	if (plt_mode == 'save_only'):
-		print('Saving {0} bar graph as {1}...'.format(title, filename))		    		
-		plt.savefig(filename, format='png', dpi=400, bbox_inches='tight')
+	dump_string_to_out(temp, statfile, mode)	    				
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
