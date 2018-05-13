@@ -1,3 +1,16 @@
+# vim: set tabstop=4:softtabstop=4:shiftwidth=4:noexpandtab
+#
+# Authors:
+#		Bandiola, Al Tristan
+#		de Guia, Norman Roy
+#
+# This script is made specifically for the analysis of ezproxy logs,
+# which would later be used for the completion of our capstone project.
+#
+# Usage: $ python ezlogparse.py --argument value
+#
+# More details in github.com/nmdeguia/ezlogparse/README.md
+
 import matplotlib.pyplot as plt; plt.rcdefaults()
 import matplotlib.pyplot as plt
 import os
