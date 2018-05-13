@@ -17,8 +17,8 @@ import os
 
 # if OS is windows, save plot only (fork doesn't work)
 # or good if you can make multithreading work for windows
-if (os.name == 'nt'): plt_mode = 'save_only'
-else: plt_mode = 'show'	
+if (os.name == 'nt'): plt_mode = 'show'
+else: plt_mode = 'show'
 
 # this only plots the global unique items per log file
 def generate_bar_graph(pos_x_axis, x_item_label, x_items, y_items,
@@ -28,9 +28,9 @@ def generate_bar_graph(pos_x_axis, x_item_label, x_items, y_items,
 	plt.xticks(pos_x_axis, x_item_label, rotation='vertical')
 	plt.ylabel(y_label)
 	plt.xlabel(x_label)
-	plt.title(title)	    	
+	plt.title(title)
 
-	saveplot(title, filename)			
+	saveplot(title, filename)
 
 # this only shows the global total connections in all files
 def generate_pie_chart(sizes, labels, title, filename):
@@ -42,7 +42,7 @@ def generate_pie_chart(sizes, labels, title, filename):
 	plt.axis('equal')
 	plt.title(title)
 
-	saveplot(title, filename)			
+	saveplot(title, filename)
 
 def saveplot(title, filename):
 	if (plt_mode == 'show'):
