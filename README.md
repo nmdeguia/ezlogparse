@@ -11,9 +11,9 @@ Parser for data logs saved by ezproxy using Python.
 | --plot, -p | Plot statististical graphs | False | None
 | --dir, -d | Directory of log files | pwd* | str
 | --ext, -e | Extension of files | *.log | str
-| --in_file, -f | Use custom input log file | data.log | string
-| --out_file, -o | Specify output file | parsed.csv | string
-| --stat_file, -s | Specify output stat file | stat.csv | string
+| --infile, -f | Use custom input log file | data.log | string
+| --outfile, -o | Specify output file | parsed.csv | string
+| --statfile, -s | Specify output stat file | stat.csv | string
 | --keyword, -k | Lookup filtering keyword | '.pdf' | string
 | --timewindow, -t | Specify timewindow | 14400 seconds | integer
 | --oncampaddr, -ipc | Specify campus ip address | 10.X.X.X | string
