@@ -24,6 +24,8 @@ import matplotlib.pyplot as plt; plt.rcdefaults()
 import matplotlib.pyplot as plt
 import numpy as np
 
+import multiprocessing
+
 ver = '3.0'
 dbg = '<=== debug string ===>'
 
@@ -37,6 +39,11 @@ global_off_campus = []
 def main(in_file, out_file, stat_file, keyword, timewindow):
 	start_time = time.time()
 
+	# if OS is windows, save plot only (fork doesn't work)
+	# or good if you can make multithreading work for windows
+	if (os.name == 'nt'): plt_mode = 'save_only'
+	else: plt_mode = 'show'	
+
 	print("Starting EZlogparse...")
 	print("==================================================")
 
@@ -45,7 +52,8 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	# will execute with the default single log file in
 	# the current working directory of the script
 	flag = 0
-	if (dir == None): execute_main(in_file, flag)
+	if (dir == None):
+		execute_main(in_file, flag)
 	else:
 		for filename in sorted(glob.glob(os.path.join(dir,ext))):
 			in_file = filename
@@ -61,10 +69,14 @@ def main(in_file, out_file, stat_file, keyword, timewindow):
 	print('Total run time: {0}'.format(elapsed_time(time.time() - start_time)))
 
 	# generate plots for statistical data
-	if (plot): generate_stat_plot()
-		# FIXME: Does not work in windows, linux only
-		# if os.fork(): pass
-		# else: generate_stat_plot()
+	if (plot and dir!=None):
+		generate_bar_graph(np.arange(len(global_log_names)),
+			[s.strip(dir+'ezp.') for s in global_log_names], global_log_names,
+			global_log_unique_cnt, '', 'Total no. of Requests',
+			'Total no. of Unique Requests in One Year',
+			'plot_requests_total.png', plt_mode)
+		generate_pie_chart([sum(global_on_campus), sum(global_off_campus)],
+			['On Campus', 'Off Campus'], 'plot_connections_total', plt_mode)
 	else: pass
 
 # main subfunction to execute in-case user defines execution
@@ -83,8 +95,9 @@ def execute_main(in_file, flag):
 	print('--------------------------------------------------')
 	generate_statistics(data, timewindow, flag)
 	csv_string = final_string(data.content)
+
 	# FIXME: for debugging purpose, store original filtered items in a debug file
-	#csv_string = final_string(data.filtered_items)
+	# csv_string = final_string(data.filtered_items)
 	dump_string_to_out(csv_string, out_file, mode)
 	print('--------------------------------------------------')
 	print('Statistical Report done!')
@@ -106,7 +119,7 @@ class parse_ezlog(object):
 
 		with open(in_file, 'r') as f:
 			self.str_split = [i.split() for i in f]
-		#used in search function
+		# used in search function
 		self.filtered_items = list()
 		self.content = list()
 		self.indices = list()
@@ -211,6 +224,7 @@ def dump_string_to_out(strings, filename, mode):
 	with open(filename, mode) as f: f.write(strings)
 
 def generate_statistics(items, timewindow, flag):
+	# set initial value of lowerbound index to 0 in the first iteration    	
 	basetime = items.unixtime[0]
 	finaltime = items.unixtime[-1]
 	elapsedtime = finaltime - items.unixtime[0]
@@ -220,7 +234,7 @@ def generate_statistics(items, timewindow, flag):
 	print('Initial timestamp: {0} [{1}]'.format(items.unixtime[0], 0))
 	print('Final timestamp: {0} [{1}]'.format(finaltime, len(items.unixtime)-1))
 	print('Per time slice: {0} seconds.'.format(timewindow))
-	#print('Total number of items: {0}'.format(len(items.unixtime)))
+	# print('Total number of items: {0}'.format(len(items.unixtime)))
 	print('Number of time slices: {0}'.format(timeslices))
 
 	if (flag == 0): mode = 'w'
@@ -230,7 +244,7 @@ def generate_statistics(items, timewindow, flag):
 		if (verbose): print('--------------------------------------------------')
 
 		# set initial value of lowerbound index to 0 in the first iteration
-		#if basetime is 0:
+		# if basetime is 0:
 		#	basetime = items.unixtime[0]
 		items.string.append('Timeslice no. {0} ({1} - {2})'.format(
 			iter, basetime, basetime+timewindow))
@@ -248,7 +262,7 @@ def generate_statistics(items, timewindow, flag):
 			#length = len(items.unixtime[baseindex:upperindex])
 			if (x != timeslices-1): upperindex -= 1
 			else: upperindex = items.locate_index(uppertime)
-		#else: length = 0
+		# else: length = 0
 
 		# get unixtime value of upperbound and lowerbound indices
 		baseindexvalue = items.unixtime[baseindex]
@@ -264,8 +278,8 @@ def generate_statistics(items, timewindow, flag):
 		items.string.append('Base: {0} [{1}], Upper: {2} [{3}]'.format(
 			baseindexvalue, baseindex, upperindexvalue, upperindex))
 		if (verbose): print(items.string[-1])
-		#items.string.append('Number of items in sublist: {0}'.format(length))
-		#if (verbose): print(items.string[-1])
+		# items.string.append('Number of items in sublist: {0}'.format(length))
+		# if (verbose): print(items.string[-1])
 
 		# statistical function generation starts here
 		unique = items.unique_content(baseindex, upperindex)
@@ -297,18 +311,28 @@ def generate_statistics(items, timewindow, flag):
 	dump_string_to_out(temp, stat_file, mode)
 
 # FIXME: this only plots the global unique items per log file
-def generate_stat_plot():
-	pos_x_axis = np.arange(len(global_log_names))
+def generate_bar_graph(pos_x_axis, x_item_label, x_items, y_items,
+	x_label, y_label, title, filename, plt_mode):
+	# pos_x_axis = np.arange(len(x_items))
 
-	plt.bar(pos_x_axis, global_log_unique_cnt, align='center', alpha=0.5)
-	plt.xticks(pos_x_axis,
-		[s.strip(dir+'ezp.') for s in global_log_names], rotation='vertical')
-	plt.ylabel('Number of Unique Requests')
-	# plt.xlabel('Month')
-	plt.title('Number of Unique Requests in One Year')
+	plt.bar(pos_x_axis, y_items, align='center', alpha=0.5)
+	plt.xticks(pos_x_axis, x_item_label, rotation='vertical')
+	plt.ylabel(y_label)
+	plt.xlabel(x_label)
+	plt.title(title)
 
-	# plt.show()
-	plt.savefig('num_unique_reqs_1y.png', format='png', dpi=400, bbox_inches='tight')
+	if (plt_mode == 'show'): plt.show()
+	if (plt_mode == 'save_only'): plt.savefig(filename, format='png', dpi=400, bbox_inches='tight')
+
+def generate_pie_chart(sizes, labels, filename, plt_mode):
+	# change my colors please
+	colors = ['green', 'gray']
+	explode = (0.1, 0)
+	plt.pie(sizes, explode=explode, labels=labels, colors=colors,
+		autopct='%1.1f%%', shadow=False, startangle=140)
+	plt.axis('equal')
+	if (plt_mode == 'show'): plt.show()
+	if (plt_mode == 'save_only'):  plt.savefig(filename, format='png', dpi=400, bbox_inches='tight')
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
@@ -354,6 +378,8 @@ if __name__ == '__main__':
 		help = 'Specify campus ip address',default = '10.0.0.0/8'
 	)
 	parser.add_argument(
+		# plot only works for multiple files for now
+		# specifically, when you pass the argument --dir
 		'--plot','-p',action = 'store_true',
 		help = 'Plot statistical graphs'
 	)
