@@ -33,7 +33,7 @@ global_data = [[] for i in range(5)]
 
 # main function -- function calls are done here
 def main(args):
-    # update global arguments
+	# update global arguments
 	globals().update(args.__dict__)
 	global global_data
 	start_time = time.time()
@@ -107,13 +107,13 @@ def execute_main(args, global_data, infile, flag):
 	else: print('==================================================')
 
 def elapsed_time(sec):
-    # this function returns string converted
-    # from the time elapsed, units are adjusted
-    # for more readable output
-    if sec < 1: return str(sec*1000) + ' msecs'
-    elif sec < 60: return str(sec) + ' secs'
-    elif sec < (60*60): return str(sec/60) + ' mins'
-    else: return str(sec/(60*60)) + ' hrs'
+	# this function returns string converted
+	# from the time elapsed, units are adjusted
+	# for more readable output
+	if sec < 1: return str(sec*1000) + ' msecs'
+	elif sec < 60: return str(sec) + ' secs'
+	elif sec < (60*60): return str(sec/60) + ' mins'
+	else: return str(sec/(60*60)) + ' hrs'
 
 def final_string(strings):
 	return '\n'.join(','.join(i) for i in strings) + '\n'
