@@ -46,6 +46,7 @@ if __name__ == '__main__':
         help = 'Use custom statistics file',default = 'stat.csv'
     )
     parser.add_argument(
+        # keyword/key-string to filter the logs
         '--keyword','-k',type = str,
         help = 'Specify keyword',default = '.pdf'
     )
@@ -76,16 +77,5 @@ if __name__ == '__main__':
     globals().update(args.__dict__)
     if (version): print('EZlogparse v{0}'.format(ver))
     else:
-        ezparse.main(
-            infile = args.infile,
-            outfile = args.outfile,
-            statfile = args.statfile,
-            keyword = args.keyword,
-            timewindow = args.timewindow,
-            ext = args.ext,
-            dir = args.dir,
-            oncampaddr = args.oncampaddr,
-            plot = args.plot,
-            verbose = args.verbose
-            )
+        ezparse.main(args)
         print('Program terminated...'.format())

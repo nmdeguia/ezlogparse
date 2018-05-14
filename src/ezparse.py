@@ -37,8 +37,10 @@ global_sites = list()
 global_verbose = False
 
 # main function -- function calls are done here
-def main(infile, outfile, statfile, keyword, timewindow,
-	ext, dir, oncampaddr, plot, verbose):
+def main(args):
+    # update global arguments
+	globals().update(args.__dict__)
+	
 	start_time = time.time()
 	global global_verbose
 	global_verbose = verbose
@@ -52,12 +54,12 @@ def main(infile, outfile, statfile, keyword, timewindow,
 	# the current working directory of the script
 	flag = 0
 	if (dir == None):
-		execute_main(infile, outfile, keyword, timewindow, oncampaddr, statfile, flag)
+		execute_main(infile, outfile, keyword, flag)
 	else:
 		for filename in sorted(glob.glob(os.path.join(dir,ext))):
 			infile = filename
 			global_log_names.append(infile)
-			execute_main(infile, outfile, keyword, timewindow, oncampaddr, statfile, flag)
+			execute_main(infile, outfile, keyword, flag)
 			flag += 1
 
 	print('Overall EZProxy Log Analysis'.format())
@@ -89,7 +91,7 @@ def main(infile, outfile, statfile, keyword, timewindow,
 
 # main subfunction to execute in-case user defines execution
 # to run analysis on multiple files in a specified directory
-def execute_main(infile, outfile, keyword, timewindow, oncampaddr, statfile, flag):
+def execute_main(infile, outfile, keyword, flag):
 	print('Parsing {0}: Keyword "{1}"'.format(infile, keyword))
 	print('--------------------------------------------------')
 	data = parse_ezlog(infile)
@@ -100,7 +102,7 @@ def execute_main(infile, outfile, keyword, timewindow, oncampaddr, statfile, fla
 
 	print('Parsing done!')
 	print('--------------------------------------------------')
-	generate_statistics(data, timewindow, oncampaddr, statfile, flag)
+	generate_statistics(data, flag)
 	csv_string = final_string(data.content)
 
 	# FIXME: for debugging purpose, store original filtered items in a debug file
@@ -210,7 +212,7 @@ class parse_ezlog(object):
 			self.string.append('{0}. ({2}) - {1}'.format(i, j[0], j[1]))
 			if (global_verbose): print(self.string[-1])
 
-		self.string.append('Total Number of Unique Sites: {}'.format(len(uni_sites)))
+		self.string.append('Total Number of Unique Sites: {0}'.format(len(uni_sites)))
 		if (global_verbose): print(self.string[-1])
 
 		#for i in list(set(uni_sites)):
@@ -224,12 +226,12 @@ class parse_ezlog(object):
 		for i in self.indices:
 			self.content.append(temp[i])
 
-def cnt_oncampus_requests(data_in, oncampaddr,strings):
+def cnt_oncampus_requests(data, oncampaddr, strings):
 	on_campus_count = 0
 	off_campus_count = 0
 	unicode_ip_net = str(oncampaddr)
-	for i in range(len(data_in)):
-		unicode_ip_request = str(data_in[i][0])
+	for i in range(len(data)):
+		unicode_ip_request = str(data[i][0])
 		if ipaddress.ip_address(
 			unicode_ip_request) in ipaddress.ip_network(unicode_ip_net):
 			on_campus_count += 1
@@ -247,7 +249,7 @@ def final_string(strings):
 def dump_string_to_out(strings, filename, mode):
 	with open(filename, mode) as f: f.write(strings)
 
-def generate_statistics(items, timewindow, oncampaddr, statfile, flag):
+def generate_statistics(items, flag):
 	# set initial value of lowerbound index to 0 in the first iteration
 	basetime = items.unixtime[0]
 	finaltime = items.unixtime[-1]
@@ -267,9 +269,6 @@ def generate_statistics(items, timewindow, oncampaddr, statfile, flag):
 	for iter, x in enumerate(range(timeslices),1):
 		if (global_verbose): print('--------------------------------------------------')
 
-		# set initial value of lowerbound index to 0 in the first iteration
-		# if basetime is 0:
-		#	basetime = items.unixtime[0]
 		items.string.append('Timeslice no. {0} ({1} - {2})'.format(
 			iter, basetime, basetime+timewindow))
 		if (global_verbose): print(items.string[-1])
@@ -333,7 +332,8 @@ def generate_statistics(items, timewindow, oncampaddr, statfile, flag):
 	global_on_campus.append(unique_on_conn)
 	global_off_campus.append(unique_off_conn)
 
-	items.string.append('Total no. of unique items in log: {0} with {1} Timeslices'.format(unique_items, timeslices))
+	items.string.append('Total no. of unique items in log: {0} with {1} Timeslices'.format(
+		unique_items, timeslices))
 	print (items.string[-1])
 
 	temp = '\n'.join(i for i in items.string) + '\n'
