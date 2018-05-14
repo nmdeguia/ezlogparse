@@ -25,7 +25,7 @@ def generate_bar_graph(pos_x_axis, x_item_label, x_items, y_items,
 	x_label, y_label, title, filename):
 
 	plt.bar(pos_x_axis, y_items, align='center', alpha=0.5)
-	plt.xticks(pos_x_axis, x_item_label, rotation='vertical')
+	plt.xticks(pos_x_axis, x_item_label, rotation=70)
 	plt.ylabel(y_label)
 	plt.xlabel(x_label)
 	plt.title(title)

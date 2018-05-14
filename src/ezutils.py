@@ -34,13 +34,6 @@ class parse(object):
         self.bytes = list()			#7
         self.unixtime = list()
 
-        # global variable declarations
-        self.global_log_unique_cnt = list()
-        self.global_log_names = list()
-        self.global_on_campus = list()
-        self.global_off_campus = list()
-        self.global_sites = list()
-
     def filter(self, keyword):
         for i in range(len(self.str_split)):
             for j in range(7):	#search all fields
@@ -114,7 +107,7 @@ class parse(object):
         self.string.append('Total Number of Unique Sites: {0}'.format(len(uni_sites)))
         if (verbose): print(self.string[-1])
 
-        #for i in list(set(uni_sites)):
+        # for i in list(set(uni_sites)):
         #	self.string.append('\t {}'.format(i))
         #	if (verbose): print(self.string[-1])
         return rank.most_common()
@@ -124,9 +117,3 @@ class parse(object):
             list(map(str, self.unixtime)), self.request, self.bytes))
         for i in self.indices:
             self.content.append(temp[i])
-        
-    def update_global_cnt(self, sites, items, on_conn, off_conn):
-        self.global_sites.append(len(sites))
-        self.global_log_unique_cnt.append(items)
-        self.global_on_campus.append(on_conn)
-        self.global_off_campus.append(off_conn)

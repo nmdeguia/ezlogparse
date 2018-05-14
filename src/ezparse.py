@@ -21,14 +21,21 @@ from src import ezplot
 from src import ezutils
 from src import ezstat
 
-ver = '3.0'
-dbg = '<=== debug string ===>'
+# global data declarations
+# increase range to add more global data
+# contains:
+#	global_log_names = global_data[0]
+#	global_log_unique_cnt = global_data[1]
+#	global_on_campus = global_data[2]
+#	global_off_campus = global_data[3]
+#	global_unique_sites = global_data[4]
+global_data = [[] for i in range(5)]
 
 # main function -- function calls are done here
 def main(args):
     # update global arguments
 	globals().update(args.__dict__)
-
+	global global_data
 	start_time = time.time()
 
 	print("Starting EZlogparse...")
@@ -40,27 +47,24 @@ def main(args):
 	# the current working directory of the script
 	flag = 0
 	if (dir == None):
-		data = execute_main(args, infile, outfile, keyword, flag)
+		execute_main(args, global_data, infile, flag)
 	else:
 		for filename in sorted(glob.glob(os.path.join(dir,ext))):	
 			infile = filename
-			data = execute_main(args, infile, outfile, keyword, flag)
-			data.global_log_names.append(infile)			
-			flag += 1
+			global_data[0].append(infile)						
+			execute_main(args, global_data, infile, flag)
+			flag = 1
 
 	print('Overall EZProxy Log Analysis'.format())
-	print('Total Connections: {0}'.format(sum(data.global_log_unique_cnt)))
-	print('Total On Campus connections: {0}'.format(sum(data.global_on_campus)))
-	print('Total Off Campus connections: {0}'.format(sum(data.global_off_campus)))
-	print('Total Online Libraries Accessed: {0}'.format(sum(data.global_sites)))
+	print('Total Connections: {0}'.format(sum(global_data[1])))
+	print('Total On Campus connections: {0}'.format(sum(global_data[2])))
+	print('Total Off Campus connections: {0}'.format(sum(global_data[3])))
+	print('Total Online Libraries Accessed: {0}'.format(sum(global_data[4])))
 	print("==================================================")
 	print('Data file: {0}'.format(outfile))
 	print('Stat file: {0}'.format(statfile))
 	print('Total run time: {0}'.format(elapsed_time(time.time() - start_time)))
 	print("==================================================")
-
-	print(data.global_log_names[0])
-	print(data.global_log_unique_cnt)
 
 	# generate plots for statistical data
 	# parameters: generate_bar_graph
@@ -68,19 +72,18 @@ def main(args):
 	# paramters: generate_pie_chart
 	# (sizes, labels, title, filename)
 	if (plot and dir!=None):
-		ezplot.generate_bar_graph(np.arange(len(data.global_log_names)),
-			[s.strip(dir+'ezp.') for s in data.global_log_names],
-			data.global_log_names, data.global_log_unique_cnt, '',
-			'Total no. of Requests', 'Total no. of Unique Requests in One Year',
-			'plot_requests_total.png')
-		ezplot.generate_pie_chart([sum(data.global_on_campus), sum(data.global_off_campus)],
+		ezplot.generate_bar_graph(np.arange(len(global_data[0])),
+			[s.strip(dir+'ezp.') for s in global_data[0]],
+			global_data[0], global_data[1], '', 'Total no. of Requests',
+			'Total no. of Unique Requests in One Year', 'plot_requests_total.png')
+		ezplot.generate_pie_chart([sum(global_data[2]), sum(global_data[3])],
 			['On Campus', 'Off Campus'], 'Percentage of Total Connections',
 			'plot_connections_total.png')
 	else: pass
 
 # main subfunction to execute in-case user defines execution
 # to run analysis on multiple files in a specified directory
-def execute_main(args, infile, outfile, keyword, flag):
+def execute_main(args, global_data, infile, flag):
 	print('Parsing {0}: Keyword "{1}"'.format(infile, keyword))
 	print('--------------------------------------------------')
 	data = ezutils.parse(infile, args)
@@ -91,7 +94,7 @@ def execute_main(args, infile, outfile, keyword, flag):
 
 	print('Parsing done!')
 	print('--------------------------------------------------')
-	ezstat.generate(args, data, flag)
+	ezstat.generate(args, global_data, data, flag)
 	csv_string = final_string(data.content)
 
 	# FIXME: for debugging purpose, store original filtered items in a debug file
@@ -102,7 +105,6 @@ def execute_main(args, infile, outfile, keyword, flag):
 
 	if (dir == None): pass
 	else: print('==================================================')
-	return data
 
 def elapsed_time(sec):
     # this function returns string converted

@@ -11,6 +11,8 @@
 #
 # More details in github.com/nmdeguia/ezlogparse/README.md
 
+ver = '3.0'
+
 import argparse
 from src import ezparse
 

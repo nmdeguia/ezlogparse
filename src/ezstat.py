@@ -16,7 +16,7 @@ import ipaddress
 
 from src import ezparse
 
-def generate(args, items, flag):
+def generate(args, global_data, items, flag):
     # update args globally
     globals().update(args.__dict__)
     # set initial value of lowerbound index to 0 in the first iteration
@@ -94,13 +94,12 @@ def generate(args, items, flag):
 
     items.finalize()
     common_sites = items.get_unique_sites()	#[0] - site, [1] - frequency
-    #print(type(common_sites))
-    #for i in common_sites: print (i)
-    items.update_global_cnt(common_sites, unique_items, unique_on_conn, unique_off_conn)
-    # items.global_sites.append(len(common_sites))
-    # items.global_log_unique_cnt.append(unique_items)
-    # items.global_on_campus.append(unique_on_conn)
-    # items.global_off_campus.append(unique_off_conn)
+    # print(type(common_sites))
+    # for i in common_sites: print (i)
+    global_data[1].append(unique_items)
+    global_data[2].append(unique_on_conn)
+    global_data[3].append(unique_off_conn)
+    global_data[4].append(len(common_sites))
 
     items.string.append('Total no. of unique items in log: {0}'.format(unique_items))
     print(items.string[-1])
@@ -118,8 +117,7 @@ def cnt_oncampus_requests(data, oncampaddr, strings):
         if ipaddress.ip_address(
             unicode_ip_request) in ipaddress.ip_network(unicode_ip_net):
             on_campus_count += 1
-        else:
-            off_campus_count += 1
+        else: off_campus_count += 1
     strings.append('Number of on-campus accesses: {0}'.format(on_campus_count))
     if (verbose): print(strings[-1])
     strings.append('Number of off-campus accesses: {0}'.format(off_campus_count))
