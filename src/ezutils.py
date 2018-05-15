@@ -18,7 +18,7 @@ from collections import Counter
 
 class parse(object):
     def __init__(self, infile, args):
-        globals().update(args.__dict__)        
+        globals().update(args.__dict__)
         with open(infile, 'r') as f:
             self.str_split = [i.split() for i in f]
         # used in search function
@@ -110,7 +110,7 @@ class parse(object):
         # for i in list(set(uni_sites)):
         #	self.string.append('\t {}'.format(i))
         #	if (verbose): print(self.string[-1])
-        return rank.most_common()
+        return rank.most_common(3)
 
     def finalize(self):
         temp = list(zip(self.ip, self.name, self.date, self.tzone,

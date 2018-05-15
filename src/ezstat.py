@@ -41,7 +41,11 @@ def generate(args, global_data, items, flag):
 		if (verbose): print('--------------------------------------------------')
 
 		items.string.append('Timeslice no. {0} ({1} - {2})'.format(
+<<<<<<< HEAD
 			iter, basetime, basetime+timewindow))
+=======
+		iter, basetime, basetime+timewindow))
+>>>>>>> 9f4064372a102a9345eae6ff00346ca69387ff46
 		if (verbose): print(items.string[-1])
 
 		# initialize time slice indices
@@ -53,20 +57,36 @@ def generate(args, global_data, items, flag):
 		upperindex = items.locate_index(uppertime)
 
 		if upperindex != baseindex:
+<<<<<<< HEAD
 			#length = len(items.unixtime[baseindex:upperindex])
 			if (x != timeslices-1): upperindex -= 1
 			else: upperindex = items.locate_index(uppertime)
 		# else: length = 0
 
 		# get unixtime value of upperbound and lowerbound indices
+=======
+		#length = len(items.unixtime[baseindex:upperindex])
+			if (x != timeslices-1): upperindex -= 1
+			else: upperindex = items.locate_index(uppertime)
+			# else: length = 0
+
+			# get unixtime value of upperbound and lowerbound indices
+>>>>>>> 9f4064372a102a9345eae6ff00346ca69387ff46
 		baseindexvalue = items.unixtime[baseindex]
 		upperindexvalue = items.unixtime[upperindex]
 
 		items.string.append('{0} to {1}'.format(
+<<<<<<< HEAD
 			datetime.datetime.fromtimestamp(
 				int(baseindexvalue)).strftime('%Y-%m-%d %H:%M:%S'),
 			datetime.datetime.fromtimestamp(
 				int(upperindexvalue)).strftime('%Y-%m-%d %H:%M:%S')
+=======
+		datetime.datetime.fromtimestamp(
+			int(baseindexvalue)).strftime('%Y-%m-%d %H:%M:%S'),
+		datetime.datetime.fromtimestamp(
+			int(upperindexvalue)).strftime('%Y-%m-%d %H:%M:%S')
+>>>>>>> 9f4064372a102a9345eae6ff00346ca69387ff46
 			))
 		if (verbose): print(items.string[-1])
 		items.string.append('Base: {0} [{1}], Upper: {2} [{3}]'.format(
@@ -79,7 +99,11 @@ def generate(args, global_data, items, flag):
 		unique = items.get_unique_content(baseindex, upperindex)
 		on_conn, off_conn = cnt_oncampus_requests(unique, oncampaddr, items.string)
 
+<<<<<<< HEAD
 		# get total number of unique items per logfile
+=======
+	# get total number of unique items per logfile
+>>>>>>> 9f4064372a102a9345eae6ff00346ca69387ff46
 		if (iter == 1):
 			unique_items = len(unique)
 			unique_on_conn = on_conn
@@ -89,11 +113,19 @@ def generate(args, global_data, items, flag):
 			unique_on_conn += on_conn
 			unique_off_conn += off_conn
 
+<<<<<<< HEAD
 		# checks if timeslice is the last one
 		# ends loop if timeslice reaches EOL
 		if x == timeslices-1: break
 		else: basetime = uppertime
 
+=======
+			# checks if timeslice is the last one
+			# ends loop if timeslice reaches EOL
+		if x == timeslices-1: break
+		else: basetime = uppertime
+	#end of loop
+>>>>>>> 9f4064372a102a9345eae6ff00346ca69387ff46
 	items.finalize()
 	common_sites = items.get_unique_sites()	#[0] - site, [1] - frequency
 	# print(type(common_sites))
@@ -139,7 +171,7 @@ def plot_data(plot, global_data, dir):
 	if (plot and dir!=None):
 		ezplot.generate_bar_graph(
 			np.arange(len(global_data[0])),
-			[s.strip(dir+'ezp.') for s in global_data[0]],
+			[s.strip((dir) + '\\ezp.') for s in global_data[0]],
 			global_data[0], global_data[1], '', 'Total no. of Requests',
 			'Total no. of Unique Requests in One Year', 'plot_requests_total.png'
 			)
@@ -151,7 +183,7 @@ def plot_data(plot, global_data, dir):
         # FIXME: Displays all sites (too much for a graph)
         # find a way to display only around the top 5 sites per month
 		ezplot.generate_bar_graph(
-			np.arange(len(global_data[5])), global_data[5],
+			np.arange(len(global_data[5])), [i.partition('.')[-1].partition('.')[0] for i in global_data[5]],
 			global_data[5], global_data[6], '', 'Frequency',
 			'Top Sites per Month', 'plot_sites_frequency.png'
 			)
