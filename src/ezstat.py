@@ -13,6 +13,7 @@
 
 import datetime
 import ipaddress
+import numpy as np
 
 from src import ezparse
 from src import ezplot
@@ -129,12 +130,12 @@ def cnt_oncampus_requests(data, oncampaddr, strings):
     if (verbose): print(strings[-1])
     return on_campus_count, off_campus_count
 
-def plot():
-	# generate plots for statistical data
-	# parameters: generate_bar_graph
-	# (x_axis, item_label, x_items, y_items, x_label, y_label, title, filename)
-	# paramters: generate_pie_chart
-	# (sizes, labels, title, filename)
+# generate plots for statistical data
+# parameters: generate_bar_graph
+# (x_axis, item_label, x_items, y_items, x_label, y_label, title, filename)
+# paramters: generate_pie_chart
+# (sizes, labels, title, filename)
+def plot_data(plot, global_data, dir):
 	if (plot and dir!=None):
 		ezplot.generate_bar_graph(
 			np.arange(len(global_data[0])),

@@ -14,7 +14,6 @@
 from sys import argv
 import time, datetime
 import os, glob
-import numpy as np
 
 # python script imports
 from src import ezutils
@@ -36,8 +35,7 @@ global_data = [[] for i in range(7)]
 def main(args):
 	# update global arguments
 	globals().update(args.__dict__)
-	global global_data
-	global infile
+	global global_data, infile
 	start_time = time.time()
 
 	print("Starting EZlogparse...")
@@ -70,7 +68,7 @@ def main(args):
 
 	# plots the function
 	# to add plot, go to ezstat.py
-	ezstat.plot()
+	ezstat.plot_data(plot, global_data, dir)
 
 # main subfunction to execute in-case user defines execution
 # to run analysis on multiple files in a specified directory
