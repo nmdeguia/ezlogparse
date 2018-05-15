@@ -101,6 +101,10 @@ def generate(args, global_data, items, flag):
     global_data[3].append(unique_off_conn)
     global_data[4].append(len(common_sites))
 
+    for sites, freq in common_sites:
+        global_data[5].append(sites)
+        global_data[6].append(freq)
+
     items.string.append('Total no. of unique items in log: {0}'.format(unique_items))
     print(items.string[-1])
 

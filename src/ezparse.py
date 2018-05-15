@@ -28,14 +28,17 @@ from src import ezstat
 #	global_log_unique_cnt = global_data[1]
 #	global_on_campus = global_data[2]
 #	global_off_campus = global_data[3]
-#	global_unique_sites = global_data[4]
-global_data = [[] for i in range(5)]
+#	global_unique_sites_cnt = global_data[4]
+#	global_usites = global_data[5]
+#	global_usites_cnt = global_data[6]
+global_data = [[] for i in range(7)]
 
 # main function -- function calls are done here
 def main(args):
 	# update global arguments
 	globals().update(args.__dict__)
 	global global_data
+	global infile
 	start_time = time.time()
 
 	print("Starting EZlogparse...")
@@ -72,13 +75,22 @@ def main(args):
 	# paramters: generate_pie_chart
 	# (sizes, labels, title, filename)
 	if (plot and dir!=None):
-		ezplot.generate_bar_graph(np.arange(len(global_data[0])),
+		ezplot.generate_bar_graph(
+			np.arange(len(global_data[0])),
 			[s.strip(dir+'ezp.') for s in global_data[0]],
 			global_data[0], global_data[1], '', 'Total no. of Requests',
-			'Total no. of Unique Requests in One Year', 'plot_requests_total.png')
-		ezplot.generate_pie_chart([sum(global_data[2]), sum(global_data[3])],
+			'Total no. of Unique Requests in One Year', 'plot_requests_total.png'
+			)
+		ezplot.generate_pie_chart(
+			[sum(global_data[2]), sum(global_data[3])],
 			['On Campus', 'Off Campus'], 'Percentage of Total Connections',
-			'plot_connections_total.png')
+			'plot_connections_total.png'
+			)
+		ezplot.generate_bar_graph(
+			np.arange(len(global_data[5])), global_data[5],
+			global_data[5], global_data[6], '', 'Frequency',
+			'Top Sites per Month', 'plot_sites_frequency.png'
+			)
 	else: pass
 
 # main subfunction to execute in-case user defines execution
