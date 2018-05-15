@@ -15,6 +15,7 @@ import datetime
 import ipaddress
 
 from src import ezparse
+from src import ezplot
 
 def generate(args, global_data, items, flag):
     # update args globally
@@ -127,3 +128,30 @@ def cnt_oncampus_requests(data, oncampaddr, strings):
     strings.append('Number of off-campus accesses: {0}'.format(off_campus_count))
     if (verbose): print(strings[-1])
     return on_campus_count, off_campus_count
+
+def plot():
+	# generate plots for statistical data
+	# parameters: generate_bar_graph
+	# (x_axis, item_label, x_items, y_items, x_label, y_label, title, filename)
+	# paramters: generate_pie_chart
+	# (sizes, labels, title, filename)
+	if (plot and dir!=None):
+		ezplot.generate_bar_graph(
+			np.arange(len(global_data[0])),
+			[s.strip(dir+'ezp.') for s in global_data[0]],
+			global_data[0], global_data[1], '', 'Total no. of Requests',
+			'Total no. of Unique Requests in One Year', 'plot_requests_total.png'
+			)
+		ezplot.generate_pie_chart(
+			[sum(global_data[2]), sum(global_data[3])],
+			['On Campus', 'Off Campus'], 'Percentage of Total Connections',
+			'plot_connections_total.png'
+			)
+        # FIXME: Displays all sites (too much for a graph)
+        # find a way to display only around the top 5 sites per month
+		ezplot.generate_bar_graph(
+			np.arange(len(global_data[5])), global_data[5],
+			global_data[5], global_data[6], '', 'Frequency',
+			'Top Sites per Month', 'plot_sites_frequency.png'
+			)
+	else: pass

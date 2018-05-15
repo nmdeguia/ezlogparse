@@ -17,7 +17,6 @@ import os, glob
 import numpy as np
 
 # python script imports
-from src import ezplot
 from src import ezutils
 from src import ezstat
 
@@ -69,29 +68,9 @@ def main(args):
 	print('Total run time: {0}'.format(elapsed_time(time.time() - start_time)))
 	print("==================================================")
 
-	# generate plots for statistical data
-	# parameters: generate_bar_graph
-	# (x_axis, item_label, x_items, y_items, x_label, y_label, title, filename)
-	# paramters: generate_pie_chart
-	# (sizes, labels, title, filename)
-	if (plot and dir!=None):
-		ezplot.generate_bar_graph(
-			np.arange(len(global_data[0])),
-			[s.strip(dir+'ezp.') for s in global_data[0]],
-			global_data[0], global_data[1], '', 'Total no. of Requests',
-			'Total no. of Unique Requests in One Year', 'plot_requests_total.png'
-			)
-		ezplot.generate_pie_chart(
-			[sum(global_data[2]), sum(global_data[3])],
-			['On Campus', 'Off Campus'], 'Percentage of Total Connections',
-			'plot_connections_total.png'
-			)
-		ezplot.generate_bar_graph(
-			np.arange(len(global_data[5])), global_data[5],
-			global_data[5], global_data[6], '', 'Frequency',
-			'Top Sites per Month', 'plot_sites_frequency.png'
-			)
-	else: pass
+	# plots the function
+	# to add plot, go to ezstat.py
+	ezstat.plot()
 
 # main subfunction to execute in-case user defines execution
 # to run analysis on multiple files in a specified directory
