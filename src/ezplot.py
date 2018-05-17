@@ -22,16 +22,19 @@ else: plt_mode = 'show'
 
 # this only plots the global unique items per log file
 def generate_bar_graph(pos_x_axis, x_item_label, x_items, y_items,
-	x_label, y_label, title, filename):
+	x_label, y_label, title, filename, rot_value):
 
 	plt.bar(pos_x_axis, y_items, align='center', alpha=0.5)
-	plt.xticks(pos_x_axis, x_item_label, rotation=85)
+	plt.xticks(pos_x_axis, x_item_label, rotation=rot_value)
 	plt.ylabel(y_label)
 	plt.xlabel(x_label)
 	plt.title(title)
 
 	saveplot(title, filename)
 
+def gen_fig():
+	pass
+	
 # this only shows the global total connections in all files
 def generate_pie_chart(sizes, labels, title, filename):
 	# FIXME: change my colors please
