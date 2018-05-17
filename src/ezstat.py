@@ -18,6 +18,9 @@ import numpy as np
 from src import ezparse
 from src import ezplot
 
+import matplotlib.pyplot as plt; plt.rcdefaults()
+import matplotlib.pyplot as plt
+
 def generate(args, global_data, items, flag):
 	# update args globally
 	globals().update(args.__dict__)
@@ -76,16 +79,16 @@ def generate(args, global_data, items, flag):
 		# if (verbose): print(items.string[-1])
 
 		# statistical function generation starts here
-		unique = items.get_unique_content(baseindex, upperindex)
-		on_conn, off_conn = cnt_oncampus_requests(unique, oncampaddr, items.string)
+		unique_content = items.get_unique_content(baseindex, upperindex)
+		on_conn, off_conn = cnt_oncampus_requests(unique_content, oncampaddr, items.string)
 
 	# get total number of unique items per logfile
 		if (iter == 1):
-			unique_items = len(unique)
+			unique_items = len(unique_content)
 			unique_on_conn = on_conn
 			unique_off_conn = off_conn
 		else:
-			unique_items += len(unique)
+			unique_items += len(unique_content)
 			unique_on_conn += on_conn
 			unique_off_conn += off_conn
 
@@ -95,9 +98,16 @@ def generate(args, global_data, items, flag):
 		else: basetime = uppertime
 	#end of loop
 	items.finalize()
+	#global_data[9].append(items.content[5])
+	# x, y = items.pop_content(None)
+	# # plt.plot(x, y)
+	# # plt.show()
+	# global_data[7].append(x)
+	# global_data[8].append(y)
+	# plt.plot(x, y)
+	# plt.show()
+
 	common_sites = items.get_unique_sites()	#[0] - site, [1] - frequency
-	# print(type(common_sites))
-	# for i in common_sites: print (i)
 	global_data[1].append(unique_items)
 	global_data[2].append(unique_on_conn)
 	global_data[3].append(unique_off_conn)
@@ -109,7 +119,6 @@ def generate(args, global_data, items, flag):
 
 	items.string.append('Total no. of unique items in log: {0}'.format(unique_items))
 	print(items.string[-1])
-
 	temp = '\n'.join(i for i in items.string) + '\n'
 	ezparse.dump_string_to_out(temp, statfile, mode)
 	return items
@@ -132,17 +141,18 @@ def cnt_oncampus_requests(data, oncampaddr, strings):
 
 # generate plots for statistical data
 # parameters: generate_bar_graph
-# (x_axis, item_label, x_items, y_items, x_label, y_label, title, filename)
+# (x_axis, item_label, x_items, y_items, x_label, y_label, title, filename, rotation_value)
 # paramters: generate_pie_chart
 # (sizes, labels, title, filename)
 def plot_data(plot, global_data, dir):
 	if (plot and dir!=None):
 		ezplot.generate_bar_graph(
-			np.arange(len(global_data[0])),
-			[s.strip((dir) + '\\ezp.') for s in global_data[0]],
+			np.arange(len(global_data[0])),[(datetime.date(year=int(str(
+			s.strip((dir) + '\\ezp.'))[0:4]),month=int(str(s.strip((
+			dir) + '\\ezp.'))[4:]), day=1).strftime("%b%Y")) for s in global_data[0]],
 			global_data[0], global_data[1], '', 'Total no. of Requests',
-			'Total no. of Unique Requests in One Year', 'plot_requests_total.png'
-			)
+			'Total no. of Unique Requests in One Year', 'plot_requests_total.png',
+			0)
 		ezplot.generate_pie_chart(
 			[sum(global_data[2]), sum(global_data[3])],
 			['On Campus', 'Off Campus'], 'Percentage of Total Connections',
@@ -153,6 +163,8 @@ def plot_data(plot, global_data, dir):
 		ezplot.generate_bar_graph(
 			np.arange(len(global_data[5])), [i.partition('.')[-1].partition('.')[0] for i in global_data[5]],
 			global_data[5], global_data[6], '', 'Frequency',
-			'Top Sites per Month', 'plot_sites_frequency.png'
-			)
+			'Top Sites per Month', 'plot_sites_frequency.png',
+			85)
+		# plt.plot(global_data[7], global_data[8])
+		# plt.show()
 	else: pass
