@@ -44,7 +44,7 @@ def generate(args, global_data, items, flag):
 		if (verbose): print('--------------------------------------------------')
 
 		items.string.append('Timeslice no. {0} ({1} - {2})'.format(
-		iter, basetime, basetime+timewindow))
+			iter, basetime, basetime+timewindow))
 		if (verbose): print(items.string[-1])
 
 		# initialize time slice indices
@@ -56,20 +56,20 @@ def generate(args, global_data, items, flag):
 		upperindex = items.locate_index(uppertime)
 
 		if upperindex != baseindex:
-		#length = len(items.unixtime[baseindex:upperindex])
+			#length = len(items.unixtime[baseindex:upperindex])
 			if (x != timeslices-1): upperindex -= 1
 			else: upperindex = items.locate_index(uppertime)
-			# else: length = 0
+		# else: length = 0
 
-			# get unixtime value of upperbound and lowerbound indices
+		# get unixtime value of upperbound and lowerbound indices
 		baseindexvalue = items.unixtime[baseindex]
 		upperindexvalue = items.unixtime[upperindex]
 
 		items.string.append('{0} to {1}'.format(
-		datetime.datetime.fromtimestamp(
-			int(baseindexvalue)).strftime('%Y-%m-%d %H:%M:%S'),
-		datetime.datetime.fromtimestamp(
-			int(upperindexvalue)).strftime('%Y-%m-%d %H:%M:%S')
+			datetime.datetime.fromtimestamp(
+				int(baseindexvalue)).strftime('%Y-%m-%d %H:%M:%S'),
+			datetime.datetime.fromtimestamp(
+				int(upperindexvalue)).strftime('%Y-%m-%d %H:%M:%S')
 			))
 		if (verbose): print(items.string[-1])
 		items.string.append('Base: {0} [{1}], Upper: {2} [{3}]'.format(
@@ -82,7 +82,7 @@ def generate(args, global_data, items, flag):
 		unique_content = items.get_unique_content(baseindex, upperindex)
 		on_conn, off_conn = cnt_oncampus_requests(unique_content, oncampaddr, items.string)
 
-	# get total number of unique items per logfile
+		# get total number of unique items per logfile
 		if (iter == 1):
 			unique_items = len(unique_content)
 			unique_on_conn = on_conn
@@ -92,11 +92,11 @@ def generate(args, global_data, items, flag):
 			unique_on_conn += on_conn
 			unique_off_conn += off_conn
 
-			# checks if timeslice is the last one
-			# ends loop if timeslice reaches EOL
+		# checks if timeslice is the last one
+		# ends loop if timeslice reaches EOL
 		if x == timeslices-1: break
 		else: basetime = uppertime
-	#end of loop
+
 	items.finalize()
 	#global_data[9].append(items.content[5])
 	# x, y = items.pop_content(None)
@@ -163,8 +163,14 @@ def plot_data(plot, global_data, dir):
 		ezplot.generate_bar_graph(
 			np.arange(len(global_data[5])), [i.partition('.')[-1].partition('.')[0] for i in global_data[5]],
 			global_data[5], global_data[6], '', 'Frequency',
+<<<<<<< HEAD
 			'Top Sites per Month', 'plot_sites_frequency.png',
 			85)
 		# plt.plot(global_data[7], global_data[8])
 		# plt.show()
 	else: pass
+=======
+			'Top Sites per Month', 'plot_sites_frequency.png'
+			)
+	else: pass
+>>>>>>> 8da618b4912aec801d6f3bc75e71bfb39a1b768e
