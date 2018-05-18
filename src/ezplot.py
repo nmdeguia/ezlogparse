@@ -30,11 +30,8 @@ def generate_bar_graph(pos_x_axis, x_item_label, x_items, y_items,
 	plt.xlabel(x_label)
 	plt.title(title)
 
-	saveplot(title, filename)
+	genplot(title, filename)
 
-def gen_fig():
-	pass
-	
 # this only shows the global total connections in all files
 def generate_pie_chart(sizes, labels, title, filename):
 	# FIXME: change my colors please
@@ -45,9 +42,16 @@ def generate_pie_chart(sizes, labels, title, filename):
 	plt.axis('equal')
 	plt.title(title)
 
-	saveplot(title, filename)
+	genplot(title, filename)
 
-def saveplot(title, filename):
+def generate_line_graph(x_items, y_items, x_label, y_label, title, filename):
+	plt.plot(x_items, y_items)
+	plt.xlabel(x_label)
+	plt.ylabel(y_label)
+
+	genplot(title,filename)
+
+def genplot(title, filename):
 	if (plt_mode == 'show'):
 		print('Display: {0}'.format(title))
 		plt.show()

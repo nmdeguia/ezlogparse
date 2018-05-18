@@ -29,7 +29,7 @@ from src import ezstat
 #	global_unique_sites_cnt = global_data[4]
 #	global_usites = global_data[5]
 #	global_usites_cnt = global_data[6]
-global_data = [[] for i in range(7)]
+global_data = [[] for i in range(9)]
 
 # main function -- function calls are done here
 def main(args):

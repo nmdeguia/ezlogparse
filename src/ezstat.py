@@ -79,7 +79,7 @@ def generate(args, global_data, items, flag):
 		# if (verbose): print(items.string[-1])
 
 		# statistical function generation starts here
-		unique_content = items.get_unique_content(baseindex, upperindex)
+		unique_content,_,_ = items.get_unique_content(baseindex, upperindex)
 		on_conn, off_conn = cnt_oncampus_requests(unique_content, oncampaddr, items.string)
 
 		# get total number of unique items per logfile
@@ -98,24 +98,23 @@ def generate(args, global_data, items, flag):
 		else: basetime = uppertime
 
 	items.finalize()
-	#global_data[9].append(items.content[5])
-	# x, y = items.pop_content(None)
-	# # plt.plot(x, y)
-	# # plt.show()
-	# global_data[7].append(x)
-	# global_data[8].append(y)
-	# plt.plot(x, y)
-	# plt.show()
-
 	common_sites = items.get_unique_sites()	#[0] - site, [1] - frequency
+
+	# gets frequency (ufreq) from unique items (end to end of month)
+	_,_,ufreq = items.get_unique_content(0, len(items.unixtime)-1)
+
 	global_data[1].append(unique_items)
 	global_data[2].append(unique_on_conn)
 	global_data[3].append(unique_off_conn)
 	global_data[4].append(len(common_sites))
 
-	for sites, freq in common_sites:
+	# gets the sites and frequency of common sites used
+	for sites, sfreq in common_sites:
 		global_data[5].append(sites)
-		global_data[6].append(freq)
+		global_data[6].append(sfreq)
+
+	# adds the frequency to the list and sorts it in descending order
+	global_data[7] = sorted(global_data[7] + ufreq, reverse=True)
 
 	items.string.append('Total no. of unique items in log: {0}'.format(unique_items))
 	print(items.string[-1])
@@ -144,33 +143,31 @@ def cnt_oncampus_requests(data, oncampaddr, strings):
 # (x_axis, item_label, x_items, y_items, x_label, y_label, title, filename, rotation_value)
 # paramters: generate_pie_chart
 # (sizes, labels, title, filename)
+# parameters: generate_line_graph
 def plot_data(plot, global_data, dir):
-	if (plot and dir!=None):
+	if (plot): #and dir!=None):
 		ezplot.generate_bar_graph(
 			np.arange(len(global_data[0])),[(datetime.date(year=int(str(
 			s.strip((dir) + '\\ezp.'))[0:4]),month=int(str(s.strip((
 			dir) + '\\ezp.'))[4:]), day=1).strftime("%b%Y")) for s in global_data[0]],
 			global_data[0], global_data[1], '', 'Total no. of Requests',
-			'Total no. of Unique Requests in One Year', 'plot_requests_total.png',
-			0)
+			'Total no. of Unique Requests in One Year', 'plot_requests_total.png', 0
+		)
 		ezplot.generate_pie_chart(
 			[sum(global_data[2]), sum(global_data[3])],
 			['On Campus', 'Off Campus'], 'Percentage of Total Connections',
 			'plot_connections_total.png'
-			)
-        # FIXME: Displays all sites (too much for a graph)
-        # find a way to display only around the top 5 sites per month
+		)
 		ezplot.generate_bar_graph(
-			np.arange(len(global_data[5])), [i.partition('.')[-1].partition('.')[0] for i in global_data[5]],
+			np.arange(len(global_data[5])),
+			[i.partition('.')[-1].partition('.')[0] for i in global_data[5]],
 			global_data[5], global_data[6], '', 'Frequency',
-<<<<<<< HEAD
-			'Top Sites per Month', 'plot_sites_frequency.png',
-			85)
-		# plt.plot(global_data[7], global_data[8])
-		# plt.show()
+			'Top Sites per Month', 'plot_sites_frequency.png', 85
+		)
+		# total zipf distribution of all months
+		ezplot.generate_line_graph(
+			range(len(global_data[7])), global_data[7],
+			'Content ID Number', 'Frequency',
+			'Zipf Distribution', 'zipf_distribution.png'
+		)
 	else: pass
-=======
-			'Top Sites per Month', 'plot_sites_frequency.png'
-			)
-	else: pass
->>>>>>> 8da618b4912aec801d6f3bc75e71bfb39a1b768e

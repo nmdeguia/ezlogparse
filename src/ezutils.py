@@ -69,6 +69,8 @@ class parse(object):
     def get_unique_content(self, a, b):
         temp = zip(self.ip[a:b], self.request[a:b])
         unique = set()
+        ucid = list()
+        ufreq = list()
 
         for i, element in enumerate(temp):
             if element not in unique:
@@ -80,6 +82,8 @@ class parse(object):
             temp = Counter(duplicates.pop(1))
             for i, j in enumerate(temp.most_common(), 1):
                 self.string.append('CID: {0:03d}, No. of requests: {1}'.format(i, j[1]))
+                ucid.append(i)
+                ufreq.append(j[1])
                 if (verbose): print(self.string[-1])
             self.string.append('Number of Unique URLs: {0}'.format(len(set(temp))))
             if (verbose): print(self.string[-1])
@@ -89,7 +93,7 @@ class parse(object):
 
         self.string.append('Number of Unique IP: {0}'.format(len(list(unique))))
         if (verbose): print(self.string[-1])
-        return list(unique)
+        return list(unique), ucid, ufreq
 
     def get_unique_sites(self):
         sites = list()
@@ -117,3 +121,4 @@ class parse(object):
             list(map(str, self.unixtime)), self.request, self.bytes))
         for i in self.indices:
             self.content.append(temp[i])
+        return self.content
