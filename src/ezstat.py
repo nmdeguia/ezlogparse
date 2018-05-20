@@ -14,6 +14,7 @@
 import datetime
 import ipaddress
 import numpy as np
+from collections import Counter
 
 from src import ezparse
 from src import ezplot
@@ -165,6 +166,8 @@ def plot_data(plot, global_data, dir):
 			'Top Sites per Month', 'plot_sites_frequency.png', 85
 		)
 		# total zipf distribution of all months
+		# FIXME: this only appends the unique for each month,
+		# not the unique for the whole dataset
 		ezplot.generate_line_graph(
 			range(len(global_data[7])), global_data[7],
 			'Content ID Number', 'Frequency',

@@ -34,7 +34,6 @@ def generate_bar_graph(pos_x_axis, x_item_label, x_items, y_items,
 
 # this only shows the global total connections in all files
 def generate_pie_chart(sizes, labels, title, filename):
-	# FIXME: change my colors please
 	colors = ['lightsteelblue', 'cornflowerblue']
 	explode = (0.05, 0)
 	plt.pie(sizes, explode=explode, labels=labels, colors=colors,

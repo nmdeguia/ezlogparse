@@ -29,7 +29,8 @@ from src import ezstat
 #	global_unique_sites_cnt = global_data[4]
 #	global_usites = global_data[5]
 #	global_usites_cnt = global_data[6]
-global_data = [[] for i in range(9)]
+#	global_freq_cnt = global_data[7]
+global_data = [[] for i in range(25)]
 
 # main function -- function calls are done here
 def main(args):
@@ -84,13 +85,20 @@ def execute_main(args, global_data, infile, flag):
 	print('Parsing done!')
 	print('--------------------------------------------------')
 	ezstat.generate(args, global_data, data, flag)
+
+	# for debugging purpose, store original filtered items in a debug file
+	# csv_string = final_string(data.filtered_items)
 	csv_string = final_string(data.content)
 
-	# FIXME: for debugging purpose, store original filtered items in a debug file
-	# csv_string = final_string(data.filtered_items)
+	# append all final content without duplicates to a global list
+	# count all same occurences of request and plot zipf
+	global_data[8] += data.content
+
 	dump_string_to_out(csv_string, outfile, mode)
 	print('--------------------------------------------------')
 	print('Statistical Report done!')
+
+	print(len(data.request))
 
 	if (dir == None): pass
 	else: print('==================================================')
