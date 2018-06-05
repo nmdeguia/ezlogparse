@@ -1,3 +1,5 @@
+## Moving to Gitlab...
+
 # ezlogparse
 Parser for data logs saved by ezproxy using Python.
 
