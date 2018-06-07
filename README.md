@@ -1,4 +1,5 @@
 ## Moving to GitLab...
+gitlab.com/nmdeguia/ezlogparse
 
 # ezlogparse
 Parser for data logs saved by ezproxy using Python.
